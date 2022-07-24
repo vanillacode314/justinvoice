@@ -41,7 +41,11 @@
 	});
 </script>
 
-<svelte:head>invoice-{id}</svelte:head>
+<svelte:head>
+	<title>
+		invoice-{id}
+	</title>
+</svelte:head>
 {#if invoice}
 	<header>
 		<h1>
