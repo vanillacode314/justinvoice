@@ -83,8 +83,7 @@
 					<td id="caption" colspan="7"> Items </td>
 				</tr>
 				<tr>
-					<td> ID </td>
-					<td> Type </td>
+					<td> ID / Type</td>
 					<td> Title </td>
 					<td> Price </td>
 					<td> Amount </td>
@@ -98,11 +97,16 @@
 							{item.id}
 							<br />
 							<span style="font-size:x-small; color: gray">
+								{item.type === GOODS ? 'Goods' : 'Services'}
+							</span>
+						</td>
+						<td>
+							{item.title}
+							<br />
+							<span style="font-size:x-small; color: gray">
 								{item.description}
 							</span>
 						</td>
-						<td> {item.type === GOODS ? 'Goods' : 'Services'} </td>
-						<td> {item.title} </td>
 						<td> {item.price} {item.currency} </td>
 						<td> {item.qty} </td>
 						<td> {item.price * item.qty} {item.currency} </td>
