@@ -41,6 +41,7 @@
 	});
 </script>
 
+<svelte:head>invoice-{id}</svelte:head>
 {#if invoice}
 	<header>
 		<h1>
