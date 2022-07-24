@@ -1,0 +1,25 @@
+* {
+	font-family: monospace;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html,
+body {
+	overflow-y: hidden;
+	background-color: white;
+	color: black;
+	height: 100%;
+}
+
+@media print {
+	@page {
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+	body {
+		padding-top: 72px;
+		padding-bottom: 72px;
+	}
+}
