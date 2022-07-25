@@ -53,6 +53,10 @@
 	onMount(() => {
 		loading = false;
 	});
+
+	function onPaidChange() {
+		$invoices = $invoices;
+	}
 </script>
 
 <div class="p-5">
@@ -71,7 +75,7 @@
 								type="checkbox"
 								class="toggle toggle-sm"
 								bind:checked={invoice.paid}
-								on:change={() => (invoice = invoice)}
+								on:change={onPaidChange}
 							/>
 							<span class="label-text">Paid</span>
 						</label>
