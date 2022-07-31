@@ -17,7 +17,6 @@
 	import { GOODS, type Invoice } from '$utils/invoice';
 	import { add } from '$utils';
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 
 	/// State
 	export let id: Invoice['id'];
@@ -29,15 +28,8 @@
 		: undefined;
 
 	onMount(() => {
-		const reloaded = window.localStorage.getItem('reloaded');
-		if (Number(reloaded)) {
-			window.localStorage.setItem('reloaded', '0');
-			window.print();
-			goto(`/invoice/${id}`);
-		} else {
-			window.localStorage.setItem('reloaded', '1');
-			window.location.reload();
-		}
+		window.print();
+		window.close();
 	});
 </script>
 

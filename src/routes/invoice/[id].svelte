@@ -33,7 +33,6 @@
 		: undefined;
 
 	/// METHODS ///
-
 	async function deleteInvoice() {
 		await goto('/');
 		removeInvoice(id);
@@ -49,14 +48,23 @@
 		}
 	}
 
+	function onPaidChange() {
+		$invoices = $invoices;
+	}
+
+	function print() {
+		if (!invoice) return;
+		if (invoice.items.length === 0) {
+			alert('add atleast on item');
+			return;
+		}
+		window.open(`/pdf/${id}`, '_blank');
+	}
+
 	/// LIFECYCLE HOOKS ///
 	onMount(() => {
 		loading = false;
 	});
-
-	function onPaidChange() {
-		$invoices = $invoices;
-	}
 </script>
 
 <div class="p-5">
@@ -98,7 +106,7 @@
 				</p>
 				<div class="card-actions items-center">
 					<span class="grow" />
-					<a class="btn btn-outline btn-sm" href="/pdf/{invoice.id}">Print</a>
+					<button class="btn btn-outline btn-sm" on:click={print}>Print</button>
 					<button class="btn btn-outline btn-sm" on:click={exportInvoice}>Export</button>
 					<button class="btn btn-sm btn-primary" on:click={addItem}>Add Item</button>
 					<button class="btn btn-sm btn-error" on:click={deleteInvoice}>Delete</button>
