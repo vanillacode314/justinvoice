@@ -141,4 +141,10 @@
 		</ul>
 	</div>
 </div>
-<input type="file" class="hidden" bind:this={filesInput} on:change={handleFiles} />
+<input
+	type="file"
+	class="hidden"
+	bind:this={filesInput}
+	on:change={handleFiles}
+	accept=".json,application/json"
+/>
