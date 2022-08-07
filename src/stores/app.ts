@@ -39,4 +39,5 @@ export const invoices = localStore<Invoice[]>('invoices', []);
 export const addressbook = localStore<Address[]>('addressbook', []);
 export const selectedInvoice = writable<Invoice | undefined>(undefined);
 export const selectedItem = writable<Item | undefined>(undefined);
+export const selectedAddress = writable<Address | undefined>(undefined);
 export const sidebarOpen = writable<boolean>(false);
