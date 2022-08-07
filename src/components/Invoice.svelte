@@ -14,34 +14,32 @@
 </script>
 
 <a
-	class="card max-w-96 bg-base-100 shadow-xl border border-gray-700 overflow-visible cursor-pointer hover:ring"
+	class="card max-w-96 bg-base-100 shadow-xl border border-gray-700 overflow-visible cursor-pointer hover:ring p-5 gap-1"
 	href="/invoice/{id}"
 >
-	<div class="card-body">
-		<h2 class="card-title">
-			{title}
-			<div class="badge" class:badge-error={!paid} class:badge-success={paid}>
-				{paid ? 'Paid' : 'Unpaid'}
+	<h2 class="card-title">
+		{title}
+		<div class="badge" class:badge-error={!paid} class:badge-success={paid}>
+			{paid ? 'Paid' : 'Unpaid'}
+		</div>
+	</h2>
+	<p class="flex gap-1 items-center">
+		<span>Date of Issue:</span><span class="font-bold">
+			{dateString}
+		</span>
+	</p>
+	<p class="flex gap-1 items-center">
+		<span>Sender:</span><span class="font-bold">
+			<div class="tooltip tooltip-info" data-tip={sender.address}>
+				{sender.name}
 			</div>
-		</h2>
-		<p class="flex gap-1 items-center">
-			<span>Date of Issue:</span><span class="font-bold">
-				{dateString}
-			</span>
-		</p>
-		<p class="flex gap-1 items-center">
-			<span>Sender:</span><span class="font-bold">
-				<div class="tooltip tooltip-info" data-tip={sender.address}>
-					{sender.name}
-				</div>
-			</span>
-		</p>
-		<p class="flex gap-1 items-center">
-			<span>Recipient:</span><span class="font-bold">
-				<div class="tooltip tooltip-info" data-tip={recipient.address}>
-					{recipient.name}
-				</div>
-			</span>
-		</p>
-	</div>
+		</span>
+	</p>
+	<p class="flex gap-1 items-center">
+		<span>Recipient:</span><span class="font-bold">
+			<div class="tooltip tooltip-info" data-tip={recipient.address}>
+				{recipient.name}
+			</div>
+		</span>
+	</p>
 </a>
