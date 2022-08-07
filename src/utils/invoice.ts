@@ -23,8 +23,11 @@ export interface Invoice {
 	title: string;
 	paid: boolean;
 	date_of_issue: Timestamp;
-	sender: Address;
-	recipient: Address;
+	senderID: Address['id'];
+	recipientID: Address['id'];
+	// Legacy values
+	sender?: Address;
+	recipient?: Address;
 	items: Item[];
 }
 
@@ -39,8 +42,8 @@ export function createInvoice(
 		title,
 		paid: false,
 		date_of_issue: Date.now(),
-		sender,
-		recipient,
+		senderID: sender.id,
+		recipientID: recipient.id,
 		items: []
 	};
 	invoices.update((val) => {

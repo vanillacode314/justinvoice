@@ -1,14 +1,18 @@
 <script lang="ts">
-	import { type Address } from '$utils/address';
-	import { type Invoice } from '$utils/invoice';
+	import { addressbook } from '$stores/app';
+
+	import type { Invoice } from '$utils/invoice';
 
 	/// STATE ///
 	export let id: Invoice['id'];
 	export let title: Invoice['title'];
 	export let date_of_issue: Invoice['date_of_issue'];
-	export let sender: Invoice['sender'];
-	export let recipient: Invoice['recipient'];
+	export let senderID: Invoice['senderID'];
+	export let recipientID: Invoice['recipientID'];
 	export let paid: Invoice['paid'];
+
+	$: recipient = $addressbook.find((address) => address.id == recipientID);
+	$: sender = $addressbook.find((address) => address.id == senderID);
 
 	$: dateString = new Date(date_of_issue).toLocaleDateString();
 </script>
@@ -30,15 +34,15 @@
 	</p>
 	<p class="flex gap-1 items-center">
 		<span>Sender:</span><span class="font-bold">
-			<div class="tooltip tooltip-info" data-tip={sender.address}>
-				{sender.name}
+			<div class="tooltip tooltip-info" data-tip={sender?.address}>
+				{sender?.name}
 			</div>
 		</span>
 	</p>
 	<p class="flex gap-1 items-center">
 		<span>Recipient:</span><span class="font-bold">
-			<div class="tooltip tooltip-info" data-tip={recipient.address}>
-				{recipient.name}
+			<div class="tooltip tooltip-info" data-tip={recipient?.address}>
+				{recipient?.name}
 			</div>
 		</span>
 	</p>
