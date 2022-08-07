@@ -14,7 +14,7 @@
 </script>
 
 <a
-	class="card max-w-96 bg-base-100 shadow-xl border border-gray-700 overflow-visible cursor-pointer hover:glass"
+	class="card max-w-96 bg-base-100 shadow-xl border border-gray-700 overflow-visible cursor-pointer hover:ring"
 	href="/invoice/{id}"
 >
 	<div class="card-body">
