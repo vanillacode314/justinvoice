@@ -13,7 +13,7 @@
 <script lang="ts">
 	// @ts-ignore: number-to-words doesn't provide type definitions
 	import * as ntw from 'number-to-words';
-	import { invoices } from '$stores/app';
+	import { addressbook, invoices } from '$stores/app';
 	import { GOODS, type Invoice } from '$utils/invoice';
 	import { add } from '$utils';
 	import { onMount } from 'svelte';
@@ -26,6 +26,9 @@
 				dateStyle: 'full'
 		  })
 		: undefined;
+
+	$: recipient = $addressbook.find((address) => address.id == invoice?.recipientID);
+	$: sender = $addressbook.find((address) => address.id == invoice?.senderID);
 
 	onMount(() => {
 		window.print();
@@ -55,22 +58,22 @@
 				<span class="label">Sender's Info</span>
 				<p>
 					<strong>Sender's Name:</strong>
-					{invoice.sender.name}
+					{sender.name}
 				</p>
 				<p>
 					<strong>Sender's Address:</strong>
-					{invoice.sender.address}
+					{sender.address}
 				</p>
 			</div>
 			<div class="recipients-info">
 				<span class="label">Recipient's Info</span>
 				<p>
 					<strong>Recipient's Name:</strong>
-					{invoice.recipient.name}
+					{recipient.name}
 				</p>
 				<p>
 					<strong>Recipient's Address:</strong>
-					{invoice.recipient.address}
+					{recipient.address}
 				</p>
 			</div>
 		</div>

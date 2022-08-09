@@ -14,7 +14,7 @@
 	import { goto } from '$app/navigation';
 	import Item from '$components/Item.svelte';
 
-	import { invoices, selectedInvoice } from '$stores/app';
+	import { addressbook, invoices, selectedInvoice } from '$stores/app';
 	import { addNewItemModal } from '$stores/modals';
 	import { exportToJsonFile } from '$utils';
 
@@ -31,6 +31,9 @@
 				dateStyle: 'full'
 		  })
 		: undefined;
+
+	$: recipient = $addressbook.find((address) => address.id == invoice?.recipientID);
+	$: sender = $addressbook.find((address) => address.id == invoice?.senderID);
 
 	/// METHODS ///
 	async function deleteInvoice() {
@@ -96,12 +99,12 @@
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Sender:</span><span class="font-bold">
-						{invoice.sender.name}, {invoice.sender.address}
+						{sender.name}, {sender.address}
 					</span>
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Recipient:</span><span class="font-bold">
-						{invoice.recipient.name}, {invoice.recipient.address}
+						{recipient.name}, {recipient.address}
 					</span>
 				</p>
 				<div class="card-actions items-center">
