@@ -116,7 +116,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="py-5 grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5">
+		<div class="py-5 grid gap-5" id="item-grid">
 			{#each invoice.items as item}
 				<Item {...item} />
 			{/each}
@@ -127,3 +127,9 @@
 		</p>
 	{/if}
 </div>
+
+<style>
+	#item-grid {
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	}
+</style>
