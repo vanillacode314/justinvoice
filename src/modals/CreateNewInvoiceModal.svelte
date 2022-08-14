@@ -5,18 +5,19 @@
 	import Modal from '$components/base/Modal.svelte';
 
 	/// STATE ///
-	import { addressbook, sidebarOpen } from '$stores/app';
+	import { addressbook, settings, sidebarOpen } from '$stores/app';
 	import { createNewInvoiceModal } from '$stores/modals';
 	let resetBtn: HTMLInputElement;
 	let title: string;
-	let senderID: string;
-	let recipientID: string;
+	let senderID: number | '';
+	let recipientID: number;
 	let form: HTMLFormElement;
 
 	/// METHODS ///
-	function focusForm() {
+	function onOpen() {
 		const inp = form.querySelector('input');
 		if (inp) inp.focus();
+		senderID = $settings.defaultSender ?? '';
 	}
 
 	function resetForm() {
@@ -38,7 +39,7 @@
 	id="create-new-invoice-modal"
 	bind:open={$createNewInvoiceModal}
 	on:close={resetForm}
-	on:open={focusForm}
+	on:open={onOpen}
 >
 	<h3 class="font-bold text-lg">Create New Invoice</h3>
 	<form class="flex flex-col" on:submit|preventDefault={onSubmit} bind:this={form}>

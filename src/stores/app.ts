@@ -1,6 +1,6 @@
 import type { Invoice, Item } from '$utils/invoice';
 import type { Address } from '$utils/address';
-import { writable as localStore } from 'svelte-local-storage-store';
+import { writable as localStorageStore } from 'svelte-local-storage-store';
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/env';
 
@@ -34,9 +34,16 @@ function themeStore(): Writable<string> {
 	};
 }
 
+interface Settings {
+	defaultSender: Address['id'] | null;
+}
+
+export const settings = localStorageStore<Settings>('settings', {
+	defaultSender: null
+});
 export const theme = themeStore();
-export const invoices = localStore<Invoice[]>('invoices', []);
-export const addressbook = localStore<Address[]>('addressbook', []);
+export const invoices = localStorageStore<Invoice[]>('invoices', []);
+export const addressbook = localStorageStore<Address[]>('addressbook', []);
 export const selectedInvoice = writable<Invoice | undefined>(undefined);
 export const selectedItem = writable<Item | undefined>(undefined);
 export const selectedAddress = writable<Address | undefined>(undefined);

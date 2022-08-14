@@ -6,6 +6,7 @@
 	import IconAdd from '~icons/mdi/add';
 	import IconExport from '~icons/mdi/export';
 	import IconImport from '~icons/mdi/import';
+	import IconCog from '~icons/mdi/cog';
 
 	interface Link {
 		href: string;
@@ -62,6 +63,11 @@
 					icon: IconAdd
 				}
 			]
+		},
+		{
+			href: '/settings',
+			title: 'Settings',
+			icon: IconCog
 		}
 	];
 
