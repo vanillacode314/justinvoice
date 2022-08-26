@@ -1,28 +1,18 @@
-<script lang="ts" context="module">
-	/** @type {import('./__types/[slug]').Load} */
-	export async function load({ params }) {
-		return {
-			status: 200,
-			props: {
-				id: +params.id
-			}
-		};
-	}
-</script>
-
 <script lang="ts">
+import type { PageData } from './$types';
+
 	import { goto } from '$app/navigation';
 	import Item from '$components/Item.svelte';
 
 	import { addressbook, invoices, selectedInvoice } from '$stores/app';
 	import { addNewItemModal } from '$stores/modals';
 	import { exportToJsonFile } from '$utils';
-
 	import { removeInvoice, type Invoice } from '$utils/invoice';
 	import { onMount } from 'svelte';
 
 	/// STATE ///
-	export let id: Invoice['id'];
+	export let data: PageData
+	$: id = data.id
 	$: invoice = $invoices.find((i) => i.id === id);
 	$: $selectedInvoice = invoice;
 	let loading: boolean = true;

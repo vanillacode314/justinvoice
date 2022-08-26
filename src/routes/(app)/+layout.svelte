@@ -6,7 +6,7 @@
 	import Spinner from '$components/base/Spinner.svelte';
 	import { theme } from '$stores/app';
 
-	import '../app.css';
+	import '../../app.css';
 	$: console.log('theme set', $theme);
 </script>
 

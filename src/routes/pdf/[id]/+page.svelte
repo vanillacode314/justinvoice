@@ -1,15 +1,3 @@
-<script lang="ts" context="module">
-	/** @type {import('./__types/[slug]').Load} */
-	export async function load({ params }) {
-		return {
-			status: 200,
-			props: {
-				id: +params.id
-			}
-		};
-	}
-</script>
-
 <script lang="ts">
 	// @ts-ignore: number-to-words doesn't provide type definitions
 	import * as ntw from 'number-to-words';
@@ -17,9 +5,11 @@
 	import { GOODS, type Invoice } from '$utils/invoice';
 	import { add } from '$utils';
 	import { onMount } from 'svelte';
+import type { PageData } from './$types';
 
 	/// State
-	export let id: Invoice['id'];
+	export let data: PageData
+	$: id = data.id
 	$: invoice = $invoices.find((i) => i.id === id);
 	$: issueDate = invoice
 		? new Date(invoice.date_of_issue).toLocaleString(undefined, {
