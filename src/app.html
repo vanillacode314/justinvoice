@@ -16,7 +16,10 @@
 			};
 			gtag('js', new Date());
 
-			gtag('config', 'G-R0XTFFEG6Y');
+			gtag('config', 'G-R0XTFFEG6Y', {
+				cookie_domain: window.location.hostname,
+				cookie_flags: 'SameSite=None;Secure'
+			});
 		</script>
 		<style>
 			@font-face {
