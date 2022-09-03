@@ -2,7 +2,7 @@ import type { Invoice, Item } from '$utils/invoice';
 import type { Address } from '$utils/address';
 import { writable as localStorageStore } from 'svelte-local-storage-store';
 import { writable, type Writable } from 'svelte/store';
-import { browser } from '$app/env';
+import { browser } from '$app/environment';
 
 function themeStore(): Writable<string> {
 	const { set, subscribe, update } = writable<string>('white', () => {
