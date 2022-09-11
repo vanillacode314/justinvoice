@@ -4,6 +4,9 @@ import { writable as localStorageStore } from 'svelte-local-storage-store';
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
+const DARK_THEME = 'forest';
+const LIGHT_THEME = DARK_THEME;
+
 function themeStore(): Writable<string> {
 	const { set, subscribe, update } = writable<string>('white', () => {
 		if (browser) {
@@ -11,10 +14,10 @@ function themeStore(): Writable<string> {
 			const eventHandler = () => {
 				if (darkMode.matches) {
 					set('forest');
-					document.documentElement.setAttribute('data-theme', 'forest');
+					document.documentElement.setAttribute('data-theme', DARK_THEME);
 				} else {
 					set('light');
-					document.documentElement.setAttribute('data-theme', 'light');
+					document.documentElement.setAttribute('data-theme', LIGHT_THEME);
 				}
 			};
 			eventHandler();
