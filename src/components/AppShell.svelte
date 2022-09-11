@@ -120,7 +120,7 @@
 		<slot />
 	</div>
 	<!-- Sidebar -->
-	<div class="drawer-side border-r border-gray-700">
+	<div class="drawer-side border-r border-gray-700 grid-rows-[1fr,auto]">
 		<label for="my-drawer-3" class="drawer-overlay" />
 		<ul class="menu lg:menu-compact p-4 overflow-y-auto w-80 bg-base-100 gap-3">
 			<!-- Sidebar content here -->
@@ -145,6 +145,9 @@
 				{/if}
 			{/each}
 		</ul>
+		<div class="text-center p-5 underline hover:text-primary">
+			<a href="https://raqueebuddinaziz.com">Made By Raqueebuddin Aziz</a>
+		</div>
 	</div>
 </div>
 <input
