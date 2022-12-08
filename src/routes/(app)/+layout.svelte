@@ -7,7 +7,7 @@
 	import { theme } from '$stores/app';
 
 	import '../../app.css';
-	$: console.log('theme set', $theme);
+	$: console.info('theme set', $theme);
 </script>
 
 <AppShell>

@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { PageData } from './$types';
+	import type { PageData } from './$types';
 
 	import { goto } from '$app/navigation';
 	import Item from '$components/Item.svelte';
@@ -7,12 +7,12 @@ import type { PageData } from './$types';
 	import { addressbook, invoices, selectedInvoice } from '$stores/app';
 	import { addNewItemModal } from '$stores/modals';
 	import { exportToJsonFile } from '$utils';
-	import { removeInvoice, type Invoice } from '$utils/invoice';
+	import { removeInvoice } from '$utils/invoice';
 	import { onMount } from 'svelte';
 
 	/// STATE ///
-	export let data: PageData
-	$: id = data.id
+	export let data: PageData;
+	$: id = data.id;
 	$: invoice = $invoices.find((i) => i.id === id);
 	$: $selectedInvoice = invoice;
 	let loading: boolean = true;
@@ -62,7 +62,7 @@ import type { PageData } from './$types';
 
 <div class="p-5">
 	{#if loading}
-		<p>Loading</p>
+		<p>Loading...</p>
 	{:else if invoice}
 		<div class="card w-full bg-base-100 shadow-xl card-compact border border-gray-600">
 			<div class="card-body">

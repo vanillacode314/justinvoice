@@ -26,9 +26,10 @@
 	let filesInput: HTMLInputElement;
 	import { page } from '$app/stores';
 	import { addNewAddressModal, createNewInvoiceModal } from '$stores/modals';
-	import { invoices, sidebarOpen } from '$stores/app';
+	import { addressbook, invoices, sidebarOpen } from '$stores/app';
 	import { exportToJsonFile, getId } from '$utils';
 	import type { Invoice } from '$utils/invoice';
+	import type { Address } from '$utils/address';
 	const links: Link[] = [
 		{
 			href: '/',
@@ -78,7 +79,10 @@
 			timeStyle: 'short',
 			hour12: false
 		});
-		exportToJsonFile($invoices, `justinvoices-${dateString}.json`);
+		exportToJsonFile(
+			{ invoices: $invoices, addressbook: $addressbook },
+			`justinvoices-${dateString}.json`
+		);
 	}
 
 	function importInvoices() {
@@ -90,16 +94,20 @@
 		if (inp.files) {
 			const file = inp.files[0];
 			const content = await file.text();
-			let data = JSON.parse(content) as Invoice | Invoice[];
-			if (!Array.isArray(data)) {
-				data = [data];
+			let { invoices: _invoices, addressbook: _addressbook } = JSON.parse(content) as {
+				invoices: Invoice | Invoice[];
+				addressbook: Address[];
+			};
+			if (!Array.isArray(_invoices)) {
+				_invoices = [_invoices];
 			}
-			for (const d of data) {
-				if ($invoices.find((i) => i.id === d.id)) {
-					d.id = getId();
+			$addressbook = _addressbook
+			for (const invoice of _invoices) {
+				if ($invoices.find((i) => i.id === invoice.id)) {
+					invoice.id = getId();
 				}
 			}
-			$invoices = [...$invoices, ...data];
+			$invoices = [...$invoices, ..._invoices];
 		}
 	}
 </script>
@@ -144,10 +152,10 @@
 					{/if}
 				{/if}
 			{/each}
+			<div class="mt-auto text-center p-5 underline hover:text-primary">
+				<a href="https://raqueebuddinaziz.com">Made By Raqueebuddin Aziz</a>
+			</div>
 		</ul>
-		<div class="text-center p-5 underline hover:text-primary">
-			<a href="https://raqueebuddinaziz.com">Made By Raqueebuddin Aziz</a>
-		</div>
 	</div>
 </div>
 <input
