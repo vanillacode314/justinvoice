@@ -101,7 +101,7 @@
 			if (!Array.isArray(_invoices)) {
 				_invoices = [_invoices];
 			}
-			$addressbook = _addressbook
+			$addressbook = [...$addressbook, ..._addressbook];
 			for (const invoice of _invoices) {
 				if ($invoices.find((i) => i.id === invoice.id)) {
 					invoice.id = getId();
