@@ -17,8 +17,10 @@
 	$: sender = $userState.addressbook.find(({ id }) => id == invoice?.senderId)
 
 	onMount(() => {
-		window.print()
-		window.close()
+		setTimeout(() => {
+			window.print()
+			window.close()
+		}, 0)
 	})
 </script>
 
