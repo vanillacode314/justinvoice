@@ -18,9 +18,9 @@
 
 	onMount(() => {
 		setTimeout(() => {
+			window.onfocus = () => window.close()
 			window.print()
-			window.close()
-		}, 0)
+		})
 	})
 </script>
 

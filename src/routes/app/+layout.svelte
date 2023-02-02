@@ -2,6 +2,7 @@
 	import '$/app.css'
 	import AppShell from '$/components/AppShell.svelte'
 	import Spinner from '$/components/base/Spinner.svelte'
+	import { alert } from '$/modals/auto-import/AlertModal.svelte'
 	import { userState } from '$/stores'
 	import {
 		entitySchema,
