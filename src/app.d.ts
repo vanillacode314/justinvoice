@@ -10,3 +10,5 @@ declare namespace App {
 	// interface Session {}
 	// interface Stuff {}
 }
+
+declare const __version__: string

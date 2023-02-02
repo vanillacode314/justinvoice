@@ -1,27 +1,25 @@
 <script lang="ts">
-	import { addressbook } from '$stores/app';
-
-	import type { Invoice } from '$utils/invoice';
+	import { userState } from '$/stores'
+	import type { TInvoice } from '$/types'
 
 	/// STATE ///
-	export let id: Invoice['id'];
-	export let title: Invoice['title'];
-	export let date_of_issue: Invoice['date_of_issue'];
-	export let senderID: Invoice['senderID'];
-	export let recipientID: Invoice['recipientID'];
-	export let paid: Invoice['paid'];
+	export let id: TInvoice['id']
+	export let title: TInvoice['title']
+	export let dateOfIssue: TInvoice['dateOfIssue']
+	export let senderId: TInvoice['senderId']
+	export let recipientId: TInvoice['recipientId']
+	export let paid: TInvoice['paid']
 
-	$: recipient = $addressbook.find((address) => address.id == recipientID);
-	$: sender = $addressbook.find((address) => address.id == senderID);
-
-	$: dateString = new Date(date_of_issue).toLocaleDateString();
+	$: recipient = $userState.addressbook.find((address) => address.id == recipientId)
+	$: sender = $userState.addressbook.find((address) => address.id == senderId)
+	$: dateString = new Date(dateOfIssue).toLocaleDateString()
 </script>
 
 <a
-	class="card max-w-96 bg-base-100 shadow-xl border border-gray-700 overflow-visible cursor-pointer hover:ring p-5 gap-1"
-	href="/invoice/{id}"
+	class="card max-w-96 bg-stone-900 shadow overflow-visible cursor-pointer hover:shadow-none p-5 gap-1 transition hover:bg-stone-800"
+	href="/app/invoice/{id}"
 >
-	<h2 class="card-title">
+	<h2 class="card-title justify-between items-baseline">
 		{title}
 		<div class="badge" class:badge-error={!paid} class:badge-success={paid}>
 			{paid ? 'Paid' : 'Unpaid'}

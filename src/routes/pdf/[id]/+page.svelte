@@ -1,29 +1,25 @@
 <script lang="ts">
+	import { userState } from '$/stores'
+	import { page } from '$app/stores'
 	// @ts-ignore: number-to-words doesn't provide type definitions
-	import * as ntw from 'number-to-words';
-	import { addressbook, invoices } from '$stores/app';
-	import { GOODS, type Invoice } from '$utils/invoice';
-	import { add } from '$utils';
-	import { onMount } from 'svelte';
-import type { PageData } from './$types';
+	import * as ntw from 'number-to-words'
 
 	/// State
-	export let data: PageData
-	$: id = data.id
-	$: invoice = $invoices.find((i) => i.id === id);
+	$: id = $page.params.id
+	$: invoice = $userState.invoices.find((i) => i.id === id)
 	$: issueDate = invoice
-		? new Date(invoice.date_of_issue).toLocaleString(undefined, {
+		? new Date(invoice.dateOfIssue).toLocaleString(undefined, {
 				dateStyle: 'full'
 		  })
-		: undefined;
+		: undefined
 
-	$: recipient = $addressbook.find((address) => address.id == invoice?.recipientID);
-	$: sender = $addressbook.find((address) => address.id == invoice?.senderID);
+	$: recipient = $userState.addressbook.find(({ id }) => id == invoice?.recipientId)
+	$: sender = $userState.addressbook.find(({ id }) => id == invoice?.senderId)
 
 	onMount(() => {
-		window.print();
-		window.close();
-	});
+		window.print()
+		window.close()
+	})
 </script>
 
 <svelte:head>
@@ -31,7 +27,7 @@ import type { PageData } from './$types';
 		invoice-{id}
 	</title>
 </svelte:head>
-{#if invoice}
+{#if invoice && recipient && sender}
 	<header>
 		<h1>
 			{invoice.title}
@@ -70,7 +66,7 @@ import type { PageData } from './$types';
 		<table class="log">
 			<thead>
 				<tr>
-					<td id="caption" colspan="7"> Items </td>
+					<td id="caption" colspan="7">Items</td>
 				</tr>
 				<tr>
 					<td> ID / Type</td>
@@ -81,13 +77,13 @@ import type { PageData } from './$types';
 				</tr>
 			</thead>
 			<tbody>
-				{#each invoice.items as item (item.id)}
+				{#each invoice.logs as item (item.id)}
 					<tr>
 						<td>
 							{item.id}
 							<br />
 							<span style="font-size:x-small; color: gray">
-								{item.type === GOODS ? 'Goods' : 'Services'}
+								{item.type === 'GOODS' ? 'Goods' : 'Services'}
 							</span>
 						</td>
 						<td>
@@ -97,9 +93,9 @@ import type { PageData } from './$types';
 								{item.description}
 							</span>
 						</td>
-						<td> {item.price} {item.currency} </td>
+						<td> {item.cost} {invoice.currency} </td>
 						<td> {item.qty} </td>
-						<td> {item.price * item.qty} {item.currency} </td>
+						<td> {item.cost * item.qty} {invoice.currency} </td>
 					</tr>
 				{/each}
 			</tbody>
@@ -107,8 +103,8 @@ import type { PageData } from './$types';
 		<div class="bill-in-words">
 			Total:
 			<em>
-				{ntw.toWords(invoice.items.map((item) => item.price * item.qty).reduce(add, 0))}
-				<strong>{invoice.items[0].currency}</strong>
+				{ntw.toWords(invoice.logs.map((item) => item.cost * item.qty).reduce(add, 0))}
+				<strong>{invoice.currency}</strong>
 			</em>
 		</div>
 	</main>

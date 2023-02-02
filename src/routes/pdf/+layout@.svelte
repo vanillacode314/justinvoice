@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../../print.css';
+	import '../../print.css'
 </script>
 
 <main>

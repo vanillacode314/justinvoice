@@ -1,24 +1,36 @@
-import { addressbook } from '$stores/app';
-import { getId } from '.';
+import { userState } from '$/stores'
+import type { TEntity } from '$/types'
 
-export interface Address {
-	id: number;
-	name: string;
-	address: string;
-}
-
-export function addAddress(name: Address['name'], address: Address['address']) {
-	const p = {
-		id: getId(),
+export function addAddress(name: TEntity['name'], address: TEntity['address']) {
+	let id: TEntity['id'] = crypto.randomUUID()
+	const ids = get(userState).addressbook.map(({ id }) => id)
+	while (ids.includes(id)) {
+		id = crypto.randomUUID()
+	}
+	const entity = {
+		id,
 		name,
 		address
-	};
-	addressbook.update((val) => {
-		val.push(p);
-		return val;
-	});
+	}
+	userState.update((val) => {
+		const { addressbook } = val
+		addressbook.push(entity)
+		return val
+	})
 }
 
-export function removeAddress(id: Address['id']) {
-	addressbook.update((val) => val.filter((p) => p.id !== id));
+export const removeAddress = (id: TEntity['id']) => {
+	userState.update((val) => {
+		const { invoices, addressbook } = val
+		invoices.splice(
+			0,
+			invoices.length,
+			...invoices.filter(({ senderId, recipientId }) => senderId !== id && recipientId !== id)
+		)
+		addressbook.splice(
+			addressbook.findIndex((address) => address.id === id),
+			1
+		)
+		return val
+	})
 }

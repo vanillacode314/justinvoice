@@ -1,29 +1,30 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from 'svelte';
-	const dispatch = createEventDispatcher();
+	let dialogElement: HTMLDialogElement
+	export let open: boolean = false
 
-	export let id: string;
-	export let open: boolean = false;
-	export let closeOnOutsideClick: boolean = true;
+	const dispatch = createEventDispatcher()
 
-	$: tick().then(() => dispatch(open ? 'open' : 'close'));
+	$: if (dialogElement) {
+		open ? dialogElement.showModal() : dialogElement.close()
+	}
+
+	$: tick().then(() => dispatch(open ? 'open' : 'close'))
+
+	$: open && tick().then(() => fadeIn(dialogElement))
 </script>
 
-<input
-	type="checkbox"
-	{id}
-	class="modal-toggle"
-	bind:checked={open}
-	aria-hidden={!open}
-	tabindex="-1"
-/>
-<label
-	for={closeOnOutsideClick ? id : undefined}
-	class="modal modal-bottom sm:modal-middle"
-	class:cursor-pointer={closeOnOutsideClick}
-	aria-hidden={!open}
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<dialog
+	bind:this={dialogElement}
+	on:close={() => (open = false)}
+	class="bg-transparent backdrop:bg-white/10 backdrop:backdrop-blur-sm w-full max-w-full h-full p-0 m-0"
 >
-	<label class="modal-box">
-		<slot />
-	</label>
-</label>
+	<div
+		class="h-full flex md:items-center md:justify-center items-end p-0 m-0"
+		on:click={(e) => e.currentTarget === e.target && dialogElement.close()}
+	>
+		<div class="bg-stone-900 p-5 md:rounded-2xl shadow-lg w-full md:mx-auto md:max-w-xl">
+			<slot />
+		</div>
+	</div>
+</dialog>

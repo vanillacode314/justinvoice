@@ -1,30 +1,35 @@
 <script lang="ts" context="module">
-	export const addNewItemModalOpen = writable<boolean>(false)
+	export const editItemModalOpen = writable<boolean>(false)
 </script>
 
 <script lang="ts">
 	import Modal from '$/components/base/Modal.svelte'
-	import { appState } from '$/stores'
-	import type { TInvoiceItemType } from '$/types'
-	import { addItem } from '$/utils/invoice'
+	import { appState, userState } from '$/stores'
+	import { invoiceItemLogSchema, type TInvoiceItemLog } from '$/types'
 
-	let title: string
-	let description: string
-	let type: TInvoiceItemType
-	let qty: number
-	let cost: number
+	let formData: TInvoiceItemLog = invoiceItemLogSchema.parse({})
 
-	function onSubmit(e: SubmitEvent) {
-		const form = e.currentTarget as HTMLFormElement
-		if ($appState.selectedInvoiceId) {
-			addItem($appState.selectedInvoiceId, title, type, cost, qty, description)
-			form.reset()
+	$: selectedInvoice = $userState.invoices.find(({ id }) => id === $appState.selectedInvoiceId)
+	$: selectedItem = selectedInvoice?.logs.find(({ id }) => id === $appState.selectedItemId)
+
+	function onOpen() {
+		if (!selectedItem) return
+		formData = invoiceItemLogSchema.parse(selectedItem)
+	}
+
+	function onSubmit() {
+		if (selectedItem) {
+			const { qty, cost, type, title, description } = invoiceItemLogSchema.parse(formData)
+			Object.assign(selectedItem, { qty, cost, type, title, description })
+			$userState = $userState
 		}
+		$editItemModalOpen = false
+		$appState.drawerVisible = false
 	}
 </script>
 
-<Modal bind:open={$addNewItemModalOpen}>
-	<h3 class="font-bold text-lg">Add New Item</h3>
+<Modal bind:open={$editItemModalOpen} on:open={onOpen}>
+	<h3 class="font-bold text-lg">Edit Item</h3>
 	<form class="flex flex-col" method="dialog" on:submit={onSubmit}>
 		<div class="form-control w-full gap-1">
 			<div class="flex">
@@ -34,7 +39,7 @@
 						type="radio"
 						name="type"
 						class="radio checked:bg-blue-500"
-						bind:group={type}
+						bind:group={formData.type}
 						value="GOODS"
 						required
 					/>
@@ -46,7 +51,7 @@
 						type="radio"
 						name="type"
 						class="radio checked:bg-blue-500"
-						bind:group={type}
+						bind:group={formData.type}
 						value="SERVICES"
 					/>
 				</label>
@@ -61,7 +66,7 @@
 				placeholder="Type here"
 				class="input input-bordered w-full invalid:input-error"
 				required
-				bind:value={title}
+				bind:value={formData.title}
 			/>
 			<label for="item-description" class="label">
 				<span class="label-text">Item Description</span>
@@ -71,7 +76,7 @@
 				name="description"
 				class="textarea textarea-bordered"
 				placeholder="Description"
-				bind:value={description}
+				bind:value={formData.description}
 			/>
 			<label for="item-qty" class="label">
 				<span class="label-text">Quantity</span>
@@ -84,7 +89,7 @@
 				class="input input-bordered w-full invalid:input-error"
 				min="1"
 				required
-				bind:value={qty}
+				bind:value={formData.qty}
 			/>
 			<label for="item-price" class="label">
 				<span class="label-text">Price</span>
@@ -96,14 +101,14 @@
 				placeholder="Type here"
 				class="input input-bordered w-full invalid:input-error"
 				required
-				bind:value={cost}
+				bind:value={formData.cost}
 			/>
 		</div>
 		<div class="modal-action">
-			<button class="btn btn-ghost" on:click={() => ($addNewItemModalOpen = false)}>Cancel</button>
-			<button class="btn btn-success flex gap-1 items-center">
-				<span class="i-mdi-add text-lg" />
-				<span> Add </span>
+			<button class="btn btn-ghost" on:click={() => ($editItemModalOpen = false)}>Cancel</button>
+			<button class="flex gap-1 items-center btn btn-success">
+				<span class="i-mdi-floppy text-lg" />
+				<span>Save</span>
 			</button>
 		</div>
 	</form>

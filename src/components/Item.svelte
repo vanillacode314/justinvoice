@@ -1,34 +1,40 @@
 <script lang="ts">
-	import { invoices, selectedInvoice } from '$stores/app';
-
-	import { type Address } from '$utils/address';
-	import { GOODS, type Item } from '$utils/invoice';
+	import ConfirmModal from '$/modals/ConfirmModal.svelte'
+	import { editItemModalOpen } from '$/modals/EditItemModal.svelte'
+	import { appState, userState } from '$/stores'
+	import type { TInvoiceItemLog } from '$/types'
 
 	/// STATE ///
-	export let id: Item['id'];
-	export let type: Item['type'];
-	export let title: Item['title'];
-	export let qty: Item['qty'];
-	export let price: Item['price'];
-	export let currency: Item['currency'];
-	export let description: Item['description'];
+	export let id: TInvoiceItemLog['id']
+	export let type: TInvoiceItemLog['type']
+	export let title: TInvoiceItemLog['title']
+	export let qty: TInvoiceItemLog['qty']
+	export let cost: TInvoiceItemLog['cost']
+	export let description: TInvoiceItemLog['description']
+
+	$: selectedInvoice = $userState.invoices.find(({ id }) => id === $appState.selectedInvoiceId)
 
 	/// METHODS ///
 	function removeItem() {
-		if ($selectedInvoice) {
-			$selectedInvoice.items = $selectedInvoice.items.filter((i) => i.id !== id);
-		}
-		$invoices = $invoices;
+		if (!selectedInvoice) return
+		selectedInvoice.logs = selectedInvoice.logs.filter((i) => i.id !== id)
+		$userState = $userState
+	}
+
+	function editItem() {
+		$appState.selectedItemId = id
+		$editItemModalOpen = true
+		$appState = $appState
 	}
 </script>
 
-<div class="card max-w-96 bg-base-100 shadow-xl border border-gray-700 overflow-visible">
+<div class="rounded-xl max-w-96 bg-stone-900">
 	<div class="card-body">
-		<h2 class="card-title">
+		<h2 class="card-title items-baseline">
 			<span>{title}</span>
 			<div class="grow" />
 			<div class="badge badge-outline">
-				{type === GOODS ? 'Goods' : 'Service'}
+				{type === 'GOODS' ? 'Goods' : 'Service'}
 			</div>
 		</h2>
 		<p class="flex gap-1 items-center">
@@ -38,21 +44,31 @@
 		</p>
 		<p class="flex gap-1 items-center">
 			<span>Price:</span><span class="font-bold">
-				{price}
-				{currency}
+				{cost}
+				{selectedInvoice?.currency}
 			</span>
 		</p>
 		<p class="flex gap-1 items-center">
 			<span>Subtotal:</span><span class="font-bold">
-				{price} &times; {qty} = {price * qty}
-				{currency}
+				{cost} &times; {qty} = {cost * qty}
+				{selectedInvoice?.currency}
 			</span>
 		</p>
 		<!-- <p> -->
 		<!-- 	{description} -->
 		<!-- </p> -->
-		<div class="card-actions justify-end">
-			<button class="btn btn-error btn-sm" on:click={removeItem}>Remove</button>
+		<div class="card-actions justify-end mt-5">
+			<button class="btn btn-primary btn-sm flex gap-1 items-center" on:click={editItem}>
+				<span class="i-mdi-pencil text-lg" />
+				<span>Edit</span>
+			</button>
+			<ConfirmModal
+				title="Delete Invoice Item"
+				message="Are you sure you want to delete this invoice item?"
+				on:confirm={removeItem}
+			>
+				<button class="btn btn-ghost text-red-400 btn-sm">Remove</button>
+			</ConfirmModal>
 		</div>
 	</div>
 </div>

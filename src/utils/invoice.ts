@@ -1,87 +1,147 @@
-import { invoices } from '$stores/app';
-import { getId } from '$utils';
-import type { Address } from '$utils/address';
-
-export type INVOICE_ITEM_TYPE = 0 | 1;
-export const SERVICE: INVOICE_ITEM_TYPE = 0;
-export const GOODS: INVOICE_ITEM_TYPE = 1;
-
-type Timestamp = number;
-
-export interface Item {
-	id: number;
-	title: string;
-	description: string;
-	type: INVOICE_ITEM_TYPE;
-	qty: number;
-	price: number;
-	currency: string;
-}
-
-export interface Invoice {
-	id: number;
-	title: string;
-	paid: boolean;
-	date_of_issue: Timestamp;
-	senderID: Address['id'];
-	recipientID: Address['id'];
-	// Legacy values
-	sender?: Address;
-	recipient?: Address;
-	items: Item[];
-}
+import { alert } from '$/modals/AlertModal.svelte'
+import { userState, userStateSchema } from '$/stores'
+import {
+	invoiceItemLogSchema,
+	invoiceSchema,
+	type TEntity,
+	type TInvoice,
+	type TInvoiceItemLog
+} from '$/types'
+import type { z } from 'zod'
+import { diffByKey } from '.'
 
 export function createInvoice(
-	title: Invoice['title'],
-	sender: Address,
-	recipient: Address
-): Invoice {
-	const id: Invoice['id'] = getId();
-	const invoice: Invoice = {
+	title: TInvoice['title'],
+	senderId: TEntity['id'],
+	recipientId: TEntity['id'],
+	currency: TInvoice['currency']
+): TInvoice {
+	let id: TInvoice['id'] = crypto.randomUUID()
+	const ids = get(userState).invoices.map(({ id }) => id)
+	while (ids.includes(id)) {
+		id = crypto.randomUUID()
+	}
+	const invoice: TInvoice = invoiceSchema.parse({
 		id,
 		title,
-		paid: false,
-		date_of_issue: Date.now(),
-		senderID: sender.id,
-		recipientID: recipient.id,
-		items: []
-	};
-	invoices.update((val) => {
-		val.push(invoice);
-		return val;
-	});
-	return invoice;
+		senderId,
+		recipientId,
+		currency
+	})
+	userState.update((val) => {
+		const { invoices } = val
+		invoices.push(invoice)
+		return val
+	})
+	return invoice
 }
 
-export function removeInvoice(id: Invoice['id']) {
-	invoices.update((val) => {
-		return val.filter((invoice) => invoice.id != id);
-	});
+export function removeInvoice(id: TInvoice['id']) {
+	userState.update((val) => {
+		const { invoices } = val
+		invoices.splice(
+			invoices.findIndex((invoice) => invoice.id != id),
+			1
+		)
+		return val
+	})
 }
 
 export function addItem(
-	invoiceId: Invoice['id'],
-	title: Item['title'],
-	type: Item['type'],
-	price: Item['price'],
-	currency: Item['currency'],
-	qty: Item['qty'],
-	description: Item['description'] = ''
+	invoiceId: TInvoice['id'],
+	title: TInvoiceItemLog['title'],
+	type: TInvoiceItemLog['type'],
+	cost: TInvoiceItemLog['cost'],
+	qty: TInvoiceItemLog['qty'],
+	description: TInvoiceItemLog['description'] = ''
 ) {
-	const id: Item['id'] = getId();
-	const item: Item = {
+	const id = crypto.randomUUID()
+	const log: TInvoiceItemLog = invoiceItemLogSchema.parse({
 		id,
 		title,
-		description,
 		type,
-		qty,
-		price,
-		currency
-	};
-	invoices.update((val) => {
-		const invoice = val.find((i) => i.id === invoiceId);
-		invoice!.items.push(item);
-		return val;
-	});
-	return item;
+		cost,
+		description,
+		qty
+	})
+	userState.update((val) => {
+		const { invoices } = val
+		const invoice = invoices.find(({ id }) => id === invoiceId)
+		if (invoice) {
+			invoice.logs.push(log)
+		}
+		return val
+	})
+	return log
+}
+
+export function exportAll() {
+	const dateString = new Date().toLocaleString(undefined, {
+		dateStyle: 'short',
+		timeStyle: 'short',
+		hour12: false
+	})
+	exportToJsonFile(
+		userStateSchema
+			.pick({
+				invoices: true,
+				archivedInvoices: true,
+				addressbook: true
+			})
+			.parse(get(userState)),
+		`justinvoices-${dateString}.json`
+	)
+}
+
+export async function importInvoices() {
+	const content = await getFile('application/json')
+	if (!content) {
+		alert({
+			title: 'No File Selected',
+			icon: 'i-mdi-warning',
+
+			message: 'Please select a valid invoice file'
+		})
+		return
+	}
+
+	const schema = userStateSchema.pick({
+		invoices: true,
+		archivedInvoices: true,
+		addressbook: true
+	})
+
+	let result = safeParseJson<z.infer<typeof schema>>(content)
+	if (!result.success) {
+		alert({
+			title: 'Invalid File',
+			icon: 'i-mdi-warning',
+			message: 'Please select a valid invoice file'
+		})
+		return
+	}
+
+	result = schema.safeParse(result.data)
+	if (!result.success) {
+		alert({
+			title: 'Invalid File',
+			icon: 'i-mdi-warning',
+			message: 'Please select a valid invoice file'
+		})
+		return
+	}
+
+	const importedData = result.data
+
+	userState.update((val) => {
+		const { archivedInvoices, invoices, addressbook } = val
+
+		invoices.push(...uniqByKey(diffByKey(importedData.invoices, invoices, 'id'), 'id'))
+		archivedInvoices.push(
+			...uniqByKey(diffByKey(importedData.archivedInvoices, archivedInvoices, 'id'), 'id')
+		)
+		addressbook.push(...uniqByKey(diffByKey(importedData.addressbook, addressbook, 'id'), 'id'))
+
+		return val
+	})
 }

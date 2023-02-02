@@ -1,36 +1,34 @@
 <script lang="ts" context="module">
-	export const createNewInvoiceModalOpen = writable<boolean>(false)
+	export const editInvoiceModalOpen = writable<boolean>(false)
 </script>
 
 <script lang="ts">
 	import Modal from '$/components/base/Modal.svelte'
-	import { addNewAddressModalOpen } from '$/modals/AddNewAddressModal.svelte'
 	import { appState, userState } from '$/stores'
 	import { invoiceSchema, type TInvoice } from '$/types'
 
 	let formData: TInvoice = invoiceSchema.parse({})
 
-	/// METHODS ///
+	$: selectedInvoice = $userState.invoices.find(({ id }) => id === $appState.selectedInvoiceId)
+
 	function onOpen() {
-		formData = invoiceSchema.parse({
-			senderId: $userState.defaultSender,
-			currency: $userState.defaultCurrency
-		})
+		if (!selectedInvoice) return
+		formData = invoiceSchema.parse(selectedInvoice)
 	}
 
-	function onSubmit(e: SubmitEvent) {
-		const form = e.currentTarget as HTMLFormElement
-		const data = invoiceSchema.parse(formData)
-
-		createInvoice(data.title, data.senderId, data.recipientId, data.currency)
-
+	function onSubmit() {
+		if (selectedInvoice) {
+			const { title, currency, senderId, recipientId } = invoiceSchema.parse(formData)
+			Object.assign(selectedInvoice, { title, currency, senderId, recipientId })
+			$userState = $userState
+		}
+		$editInvoiceModalOpen = false
 		$appState.drawerVisible = false
-		form.reset()
 	}
 </script>
 
-<Modal bind:open={$createNewInvoiceModalOpen} on:open={onOpen}>
-	<h3 class="font-bold text-lg">Create New Invoice</h3>
+<Modal bind:open={$editInvoiceModalOpen} on:open={onOpen}>
+	<h3 class="font-bold text-lg">Edit Item</h3>
 	<form class="flex flex-col" on:submit={onSubmit} method="dialog">
 		<div class="form-control w-full gap-1">
 			<label for="invoice-title" class="label">
@@ -61,7 +59,7 @@
 						<option value={id}>{name}</option>
 					{/each}
 				</select>
-				<button type="button" class="btn" on:click={() => ($addNewAddressModalOpen = true)}>
+				<button type="button" class="btn" on:click={() => ($editInvoiceModalOpen = true)}>
 					New Address</button
 				>
 			</div>
@@ -81,7 +79,7 @@
 						<option value={id}>{name}</option>
 					{/each}
 				</select>
-				<button type="button" class="btn" on:click={() => ($addNewAddressModalOpen = true)}
+				<button type="button" class="btn" on:click={() => ($editInvoiceModalOpen = true)}
 					>New Address</button
 				>
 			</div>
@@ -99,12 +97,10 @@
 			/>
 		</div>
 		<div class="modal-action">
-			<button on:click={() => ($createNewInvoiceModalOpen = false)} class="btn btn-ghost"
-				>Cancel</button
-			>
+			<button on:click={() => ($editInvoiceModalOpen = false)} class="btn btn-ghost">Cancel</button>
 			<button class="flex gap-1 items-center btn btn-success">
-				<span class="i-mdi-add text-lg" />
-				<span>Create</span>
+				<span class="i-mdi-floppy text-lg" />
+				<span>Save</span>
 			</button>
 		</div>
 	</form>

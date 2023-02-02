@@ -3,7 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+	max-height: 99999999px;
+}
 html,
 body {
-	font-family: 'Barlow', sans-serif;
+	@apply font-sans;
 }

@@ -1,36 +1,36 @@
+<script lang="ts" context="module">
+	export const editAddressModalOpen = writable<boolean>(false)
+</script>
+
 <script lang="ts">
-	/// COMPONENTS ///
-	import Modal from '$components/base/Modal.svelte';
+	import Modal from '$/components/base/Modal.svelte'
+	import { appState, userState } from '$/stores'
+	import { entitySchema, type TEntity } from '$/types'
 
-	/// STATE ///
-	import { addressbook, selectedAddress, sidebarOpen } from '$stores/app';
-	import { editAddressModal } from '$stores/modals';
-	let form: HTMLFormElement;
-	let name: string;
-	let address: string;
+	let formData: TEntity = entitySchema.parse({})
 
-	/// METHODS ///
+	$: selectedAddress = $userState.addressbook.find(({ id }) => id === $appState.selectedAddressId)
+
 	function onOpen() {
-		if ($selectedAddress) {
-			({ name, address } = $selectedAddress);
-		}
-		const inp = form.querySelector('input');
-		if (inp) inp.focus();
+		if (!selectedAddress) return
+		formData = entitySchema.parse(selectedAddress)
 	}
 
 	function onSubmit() {
-		if ($selectedAddress) {
-			$selectedAddress = Object.assign($selectedAddress, { name, address });
-			$addressbook = $addressbook;
+		if (selectedAddress) {
+			const { name, address } = entitySchema.parse(formData)
+			selectedAddress.name = name
+			selectedAddress.address = address
+			$userState = $userState
 		}
-		$editAddressModal = false;
-		$sidebarOpen = false;
+		$editAddressModalOpen = false
+		$appState.drawerVisible = false
 	}
 </script>
 
-<Modal id="edit-address-modal" bind:open={$editAddressModal} on:open={onOpen}>
+<Modal bind:open={$editAddressModalOpen} on:open={onOpen}>
 	<h3 class="font-bold text-lg">Edit Address</h3>
-	<form class="flex flex-col" on:submit|preventDefault={onSubmit} bind:this={form}>
+	<form class="flex flex-col" method="dialog" on:submit={onSubmit}>
 		<div class="form-control w-full gap-1">
 			<label for="addressbook-name" class="label">
 				<span class="label-text">Name</span>
@@ -42,7 +42,7 @@
 				placeholder="Type here"
 				class="input input-bordered w-full invalid:input-error"
 				required
-				bind:value={name}
+				bind:value={formData.name}
 			/>
 			<label for="addressbook-address" class="label">
 				<span class="label-text">Address</span>
@@ -54,12 +54,17 @@
 				placeholder="Type here"
 				class="input input-bordered w-full invalid:input-error"
 				required
-				bind:value={address}
+				bind:value={formData.address}
 			/>
 		</div>
 		<div class="modal-action">
-			<label for="edit-address-modal" class="btn btn-ghost">Cancel</label>
-			<button class="btn btn-success">Save</button>
+			<button type="button" class="btn btn-ghost" on:click={() => ($editAddressModalOpen = false)}
+				>Cancel</button
+			>
+			<button class="flex gap-1 items-center btn btn-success">
+				<span class="i-mdi-floppy text-lg" />
+				<span>Save</span>
+			</button>
 		</div>
 	</form>
 </Modal>

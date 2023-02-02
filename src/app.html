@@ -11,60 +11,19 @@
 		<!-- Google tag (gtag.js) -->
 		<script async src="https://www.googletagmanager.com/gtag/js?id=G-R0XTFFEG6Y"></script>
 		<script>
-			window.dataLayer = window.dataLayer || [];
+			window.dataLayer = window.dataLayer || []
 			window.gtag = function () {
-				dataLayer.push(arguments);
-			};
-			gtag('js', new Date());
+				dataLayer.push(arguments)
+			}
+			gtag('js', new Date())
 
 			gtag('config', 'G-R0XTFFEG6Y', {
 				cookie_domain: window.location.hostname,
 				cookie_flags: 'SameSite=None;Secure'
-			});
+			})
 		</script>
-		<style>
-			@font-face {
-				font-family: 'Barlow';
-				font-style: normal;
-				font-weight: 400;
-				font-display: swap;
-				src: url('/assets/fonts/Barlow-Regular.ttf') format('truetype');
-			}
-
-			@font-face {
-				font-family: 'Barlow';
-				font-style: italic;
-				font-weight: 400;
-				font-display: swap;
-				src: url('/assets/fonts/Barlow-Italic.ttf') format('truetype');
-			}
-
-			@font-face {
-				font-family: 'Barlow';
-				font-style: normal;
-				font-weight: 500;
-				font-display: swap;
-				src: url('/assets/fonts/Barlow-Medium.ttf') format('truetype');
-			}
-
-			@font-face {
-				font-family: 'Barlow';
-				font-style: normal;
-				font-weight: 700;
-				font-display: swap;
-				src: url('/assets/fonts/Barlow-Bold.ttf') format('truetype');
-			}
-
-			@font-face {
-				font-family: 'Barlow';
-				font-style: italic;
-				font-weight: 700;
-				font-display: swap;
-				src: url('/assets/fonts/Barlow-BoldItalic.ttf') format('truetype');
-			}
-		</style>
 	</head>
 	<body>
-		%sveltekit.body%
+		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>
