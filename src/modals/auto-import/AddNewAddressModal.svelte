@@ -53,7 +53,9 @@
 			/>
 		</div>
 		<div class="modal-action">
-			<label for="add-new-address-modal" class="btn btn-ghost">Cancel</label>
+			<button on:click={() => ($addNewAddressModalOpen = false)} class="btn btn-ghost"
+				>Cancel</button
+			>
 			<button class="btn btn-success">Create</button>
 		</div>
 	</form>
