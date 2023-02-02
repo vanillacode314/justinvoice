@@ -18,15 +18,7 @@ export const getFile = (accept: string = '') =>
 		const inp = document.createElement('input')
 		inp.type = 'file'
 		if (accept) inp.accept = accept
-		window.addEventListener(
-			'focus',
-			() => {
-				if (!inp.files?.length) {
-					resolve(null)
-				}
-			},
-			{ once: true, passive: true }
-		)
+
 		inp.onchange = () => {
 			const file = inp.files?.[0]
 			if (!file) {
