@@ -28,8 +28,11 @@
 
 <div class="p-5 flex flex-col gap-5">
 	<div>
-		<label for="default-currency" class="label">
-			<span class="label-text">Invoice Title</span>
+		<label
+			for="default-currency"
+			class="label uppercase font-semibold text-gray-400 tracking-wider text-xs"
+		>
+			<span>Default Currency</span>
 		</label>
 		<input
 			id="default-title"
@@ -67,6 +70,6 @@
 		icon="i-mdi-warning"
 		on:confirm={clearData}
 	>
-		<button class="btn btn-error" >Clear Data</button>
+		<button class="btn btn-error">Clear Data</button>
 	</ConfirmModal>
 </div>
