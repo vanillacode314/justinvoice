@@ -22,7 +22,13 @@
 	import 'uno.css'
 
 	function importLegacyState() {
-		if (!localStorage.getItem('imported-legacy-state-v0', '1')) {
+		let legacyInvoices: any = localStorage.getItem('invoices')
+		let legacyAddressbook: any = localStorage.getItem('addressbook')
+
+		if (
+			(legacyInvoices || legacyAddressbook) &&
+			!localStorage.getItem('imported-legacy-state-v0')
+		) {
 			localStorage.setItem('imported-legacy-state-v0', '1')
 			alert({
 				title: 'Migration done from older version',
@@ -30,9 +36,6 @@
 					'Your invoices were imported from an older version of the app, Please check if all your data has been correctly migrated and if not report the issue on github to recover your data.'
 			})
 		}
-
-		let legacyInvoices: any = localStorage.getItem('invoices')
-		let legacyAddressbook: any = localStorage.getItem('addressbook')
 
 		if (legacyInvoices) {
 			legacyInvoices = JSON.parse(legacyInvoices) as any[]
