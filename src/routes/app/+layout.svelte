@@ -41,7 +41,7 @@
 					id: String(item.id),
 					title: item.title,
 					description: item.description,
-					type: item.type === 0 ? 'GOODS' : 'SERVICES',
+					type: item.type === 1 ? 'GOODS' : 'SERVICES',
 					qty: item.qty,
 					cost: item.price
 				})
