@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { userState, userStateSchema } from '$/stores'
 	import { entitySchema, invoiceSchema, type TEntity, type TInvoice } from '$/types'
 
@@ -60,5 +61,12 @@
 			{/each}
 		</select>
 	</div>
-	<button type="button" class="btn btn-error" on:click={clearData}>Clear Data</button>
+	<ConfirmModal
+		title="Delete all data?"
+		message="Are you sure you would like to delete all data?"
+		icon="i-mdi-warning"
+		on:confirm={clearData}
+	>
+		<button class="btn btn-error" >Clear Data</button>
+	</ConfirmModal>
 </div>

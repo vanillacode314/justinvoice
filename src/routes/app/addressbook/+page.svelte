@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Address from '$/components/Address.svelte'
-	import { addNewAddressModalOpen } from '$/modals/AddNewAddressModal.svelte'
+	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
 	import { userState } from '$/stores'
 </script>
 

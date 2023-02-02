@@ -1,4 +1,4 @@
-import { alert } from '$/modals/AlertModal.svelte'
+import { alert } from '$/modals/auto-import/AlertModal.svelte'
 import { userState, userStateSchema } from '$/stores'
 import {
 	invoiceItemLogSchema,

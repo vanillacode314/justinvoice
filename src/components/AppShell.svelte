@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { addNewAddressModalOpen } from '$/modals/AddNewAddressModal.svelte'
-	import { createNewInvoiceModalOpen } from '$/modals/CreateNewInvoiceModal.svelte'
+	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
+	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
 	import { appState } from '$/stores'
 	import { page } from '$app/stores'
 

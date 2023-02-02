@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { editAddressModalOpen } from '$/modals/auto-import/EditAddressModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
-	import { editAddressModalOpen } from '$/modals/EditAddressModal.svelte'
 	import { appState } from '$/stores'
 	import type { TEntity } from '$/types'
 

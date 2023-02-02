@@ -2,13 +2,6 @@
 	import '$/app.css'
 	import AppShell from '$/components/AppShell.svelte'
 	import Spinner from '$/components/base/Spinner.svelte'
-	import AddNewAddressModal from '$/modals/AddNewAddressModal.svelte'
-	import AddNewItemModal from '$/modals/AddNewItemModal.svelte'
-	import AlertModal, { alert } from '$/modals/AlertModal.svelte'
-	import CreateNewInvoiceModal from '$/modals/CreateNewInvoiceModal.svelte'
-	import EditAddressModal from '$/modals/EditAddressModal.svelte'
-	import EditInvoiceModal from '$/modals/EditInvoiceModal.svelte'
-	import EditItemModal from '$/modals/EditItemModal.svelte'
 	import { userState } from '$/stores'
 	import {
 		entitySchema,
@@ -20,6 +13,11 @@
 	import { browser } from '$app/environment'
 	import { navigating } from '$app/stores'
 	import 'uno.css'
+
+	const modals = import.meta.glob('$/modals/auto-import/*.svelte', {
+		eager: true,
+		import: 'default'
+	}) as Record<string, ConstructorOfATypedSvelteComponent>
 
 	function importLegacyState() {
 		let legacyInvoices: any = localStorage.getItem('invoices')
@@ -113,12 +111,8 @@
 	{/if}
 </AppShell>
 
-<CreateNewInvoiceModal />
-<AddNewAddressModal />
-<AddNewItemModal />
-<EditAddressModal />
-<EditInvoiceModal />
-<EditItemModal />
-<AlertModal />
+{#each Object.values(modals) as modal}
+	<svelte:component this={modal} />
+{/each}
 
 <style uno:preflights uno:safelist global></style>

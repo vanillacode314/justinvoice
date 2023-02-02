@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import Modal from '$/components/base/Modal.svelte'
-	import { addNewAddressModalOpen } from '$/modals/AddNewAddressModal.svelte'
+	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
 	import { appState, userState } from '$/stores'
 	import { invoiceSchema, type TInvoice } from '$/types'
 

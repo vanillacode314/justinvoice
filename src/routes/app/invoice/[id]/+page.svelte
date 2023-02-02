@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Spinner from '$/components/base/Spinner.svelte'
 	import Item from '$/components/Item.svelte'
-	import { addNewItemModalOpen } from '$/modals/AddNewItemModal.svelte'
-	import { alert } from '$/modals/AlertModal.svelte'
+	import { addNewItemModalOpen } from '$/modals/auto-import/AddNewItemModal.svelte'
+	import { alert } from '$/modals/auto-import/AlertModal.svelte'
+	import { editInvoiceModalOpen } from '$/modals/auto-import/EditInvoiceModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
-	import { editInvoiceModalOpen } from '$/modals/EditInvoiceModal.svelte'
 	import { appState, userState } from '$/stores'
 	import { exportToJsonFile } from '$/utils'
 	import { removeInvoice } from '$/utils/invoice'

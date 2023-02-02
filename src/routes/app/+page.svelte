@@ -1,8 +1,8 @@
 <script lang="ts">
+	import Invoice from '$/components/Invoice.svelte'
+	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
 	import { userState } from '$/stores'
 	import type { TInvoice } from '$/types'
-	import Invoice from '$components/Invoice.svelte'
-	import { createNewInvoiceModalOpen } from '$modals/CreateNewInvoiceModal.svelte'
 
 	let invoices: TInvoice[]
 

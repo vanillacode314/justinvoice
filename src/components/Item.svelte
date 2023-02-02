@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { editItemModalOpen } from '$/modals/auto-import/EditItemModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
-	import { editItemModalOpen } from '$/modals/EditItemModal.svelte'
 	import { appState, userState } from '$/stores'
 	import type { TInvoiceItemLog } from '$/types'
 

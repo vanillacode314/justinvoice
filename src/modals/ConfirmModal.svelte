@@ -39,6 +39,6 @@
 		</div>
 	</form>
 </Modal>
-<form on:submit|preventDefault={() => (open = true)}>
+<form on:submit|preventDefault={() => (open = true)} class="contents">
 	<slot open={() => (open = true)} />
 </form>
