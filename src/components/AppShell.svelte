@@ -91,7 +91,14 @@
 			{#each links as { href, title, icon, actions } (href)}
 				{@const active = $page.url.pathname === href}
 				<li>
-					<a class:active {href} class="flex items-center gap-3"
+					<a
+						class:active
+						{href}
+						class="flex items-center gap-3"
+						on:click={() => {
+							if (active) return
+							$appState.drawerVisible = false
+						}}
 						><span class="text-lg {icon}" />
 						<span class="text-xs tracking-wide uppercase font-bold">
 							{title}
