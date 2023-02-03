@@ -161,7 +161,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="grid gap-5 mt-5" id="item-grid">
+		<div class="grid gap-5 mt-5 grid-cols-[repeat(auto-fill,minmax(300ox,1fr))]">
 			{#each invoice.logs as log}
 				<Item {...log} />
 			{/each}
@@ -176,9 +176,10 @@
 		</div>
 	{/if}
 </div>
-
-<style>
-	#item-grid {
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-	}
-</style>
+<ConfirmModal
+	icon="i-mdi-warning"
+	title="Delete Invoice"
+	message="Are you sure you want to delete this invoice and all of it's data?"
+	on:confirm={deleteInvoice}
+	bind:open={deleteInvoiceModalOpen}
+/>

@@ -6,6 +6,7 @@
 	import Modal from '$/components/base/Modal.svelte'
 	import { appState, userState } from '$/stores'
 	import { invoiceSchema, type TInvoice } from '$/types'
+	import { addNewAddressModalOpen } from './AddNewAddressModal.svelte'
 
 	let formData: TInvoice = invoiceSchema.parse({})
 
@@ -17,6 +18,7 @@
 	}
 
 	function onSubmit() {
+		console.log('SUBMIT')
 		if (selectedInvoice) {
 			const { title, currency, senderId, recipientId } = invoiceSchema.parse(formData)
 			Object.assign(selectedInvoice, { title, currency, senderId, recipientId })
@@ -24,6 +26,24 @@
 		}
 		$editInvoiceModalOpen = false
 		$appState.drawerVisible = false
+	}
+
+	async function newAddress(): Promise<string> {
+		$addNewAddressModalOpen = true
+		let firstRun: boolean = true
+		return new Promise((resolve) => {
+			let unsub: () => void
+			unsub = appState.subscribe(({ selectedAddressId }) => {
+				if (firstRun) {
+					firstRun = false
+					return
+				}
+				unsub()
+				const address = $userState.addressbook.find(({ id }) => id === selectedAddressId)
+				if (!address) return
+				resolve(selectedAddressId!)
+			})
+		})
 	}
 </script>
 
@@ -59,7 +79,11 @@
 						<option value={id}>{name}</option>
 					{/each}
 				</select>
-				<button type="button" class="btn" on:click={() => ($editInvoiceModalOpen = true)}>
+				<button
+					type="button"
+					class="btn"
+					on:click={() => newAddress().then((id) => (formData.senderId = id))}
+				>
 					New Address</button
 				>
 			</div>
@@ -79,7 +103,10 @@
 						<option value={id}>{name}</option>
 					{/each}
 				</select>
-				<button type="button" class="btn" on:click={() => ($editInvoiceModalOpen = true)}
+				<button
+					type="button"
+					class="btn"
+					on:click={() => newAddress().then((id) => (formData.recipientId = id))}
 					>New Address</button
 				>
 			</div>
@@ -97,7 +124,9 @@
 			/>
 		</div>
 		<div class="modal-action">
-			<button on:click={() => ($editInvoiceModalOpen = false)} class="btn btn-ghost">Cancel</button>
+			<button type="button" on:click={() => ($editInvoiceModalOpen = false)} class="btn btn-ghost"
+				>Cancel</button
+			>
 			<button class="flex gap-1 items-center btn btn-success">
 				<span class="i-mdi-floppy text-lg" />
 				<span>Save</span>

@@ -15,8 +15,8 @@
 		const form = e.currentTarget as HTMLFormElement
 
 		const data = entitySchema.parse(formData)
-		addAddress(data.name, data.address)
-
+		const { id } = addAddress(data.name, data.address)
+		$appState.selectedAddressId = id
 		$appState.drawerVisible = false
 
 		form.reset()
@@ -53,7 +53,7 @@
 			/>
 		</div>
 		<div class="modal-action">
-			<button on:click={() => ($addNewAddressModalOpen = false)} class="btn btn-ghost"
+			<button type="button" on:click={() => ($addNewAddressModalOpen = false)} class="btn btn-ghost"
 				>Cancel</button
 			>
 			<button class="btn btn-success">Create</button>

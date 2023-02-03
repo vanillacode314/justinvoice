@@ -1,7 +1,7 @@
 import { userState } from '$/stores'
 import type { TEntity } from '$/types'
 
-export function addAddress(name: TEntity['name'], address: TEntity['address']) {
+export function addAddress(name: TEntity['name'], address: TEntity['address']): TEntity {
 	let id: TEntity['id'] = crypto.randomUUID()
 	const ids = get(userState).addressbook.map(({ id }) => id)
 	while (ids.includes(id)) {
@@ -17,6 +17,8 @@ export function addAddress(name: TEntity['name'], address: TEntity['address']) {
 		addressbook.push(entity)
 		return val
 	})
+
+	return entity
 }
 
 export const removeAddress = (id: TEntity['id']) => {

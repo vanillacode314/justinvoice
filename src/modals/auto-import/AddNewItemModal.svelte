@@ -100,7 +100,9 @@
 			/>
 		</div>
 		<div class="modal-action">
-			<button class="btn btn-ghost" on:click={() => ($addNewItemModalOpen = false)}>Cancel</button>
+			<button type="button" class="btn btn-ghost" on:click={() => ($addNewItemModalOpen = false)}
+				>Cancel</button
+			>
 			<button class="btn btn-success flex gap-1 items-center">
 				<span class="i-mdi-add text-lg" />
 				<span> Add </span>

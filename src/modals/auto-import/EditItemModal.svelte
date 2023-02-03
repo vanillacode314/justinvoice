@@ -105,7 +105,9 @@
 			/>
 		</div>
 		<div class="modal-action">
-			<button class="btn btn-ghost" on:click={() => ($editItemModalOpen = false)}>Cancel</button>
+			<button type="button" class="btn btn-ghost" on:click={() => ($editItemModalOpen = false)}
+				>Cancel</button
+			>
 			<button class="flex gap-1 items-center btn btn-success">
 				<span class="i-mdi-floppy text-lg" />
 				<span>Save</span>

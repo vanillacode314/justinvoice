@@ -21,11 +21,30 @@
 	function onSubmit(e: SubmitEvent) {
 		const form = e.currentTarget as HTMLFormElement
 		const data = invoiceSchema.parse(formData)
+		console.log(data)
 
 		createInvoice(data.title, data.senderId, data.recipientId, data.currency)
 
 		$appState.drawerVisible = false
 		form.reset()
+	}
+
+	async function newAddress(): Promise<string> {
+		$addNewAddressModalOpen = true
+		let firstRun: boolean = true
+		return new Promise((resolve) => {
+			let unsub: () => void
+			unsub = appState.subscribe(({ selectedAddressId }) => {
+				if (firstRun) {
+					firstRun = false
+					return
+				}
+				unsub()
+				const address = $userState.addressbook.find(({ id }) => id === selectedAddressId)
+				if (!address) return
+				resolve(selectedAddressId!)
+			})
+		})
 	}
 </script>
 
@@ -61,7 +80,11 @@
 						<option value={id}>{name}</option>
 					{/each}
 				</select>
-				<button type="button" class="btn" on:click={() => ($addNewAddressModalOpen = true)}>
+				<button
+					type="button"
+					class="btn"
+					on:click={() => newAddress().then((id) => (formData.senderId = id))}
+				>
 					New Address</button
 				>
 			</div>
@@ -81,7 +104,10 @@
 						<option value={id}>{name}</option>
 					{/each}
 				</select>
-				<button type="button" class="btn" on:click={() => ($addNewAddressModalOpen = true)}
+				<button
+					type="button"
+					class="btn"
+					on:click={() => newAddress().then((id) => (formData.recipientId = id))}
 					>New Address</button
 				>
 			</div>
@@ -99,8 +125,10 @@
 			/>
 		</div>
 		<div class="modal-action">
-			<button on:click={() => ($createNewInvoiceModalOpen = false)} class="btn btn-ghost"
-				>Cancel</button
+			<button
+				type="button"
+				on:click={() => ($createNewInvoiceModalOpen = false)}
+				class="btn btn-ghost">Cancel</button
 			>
 			<button class="flex gap-1 items-center btn btn-success">
 				<span class="i-mdi-add text-lg" />
