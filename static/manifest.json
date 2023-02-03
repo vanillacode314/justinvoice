@@ -1,10 +1,10 @@
 {
 	"short_name": "justinvoice",
 	"name": "justinvoice",
-	"start_url": "/",
+	"start_url": "/app",
 	"background_color": "#000000",
 	"display": "standalone",
-	"scope": "/",
+	"scope": "/app",
 	"theme_color": "#000000",
 	"icons": [
 		{
