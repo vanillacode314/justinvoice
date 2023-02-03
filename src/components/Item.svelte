@@ -29,7 +29,7 @@
 </script>
 
 <div class="rounded-xl max-w-96 bg-stone-900">
-	<div class="card-body">
+	<div class="card-body h-full">
 		<h2 class="card-title items-baseline">
 			<span>{title}</span>
 			<div class="grow" />
@@ -57,7 +57,8 @@
 		<!-- <p> -->
 		<!-- 	{description} -->
 		<!-- </p> -->
-		<div class="card-actions justify-end mt-5">
+		<span class="grow" />
+		<div class="card-actions justify-end mt-3">
 			<button class="btn btn-primary btn-sm flex gap-1 items-center" on:click={editItem}>
 				<span class="i-mdi-pencil text-lg" />
 				<span>Edit</span>

@@ -5,25 +5,24 @@
 <script lang="ts">
 	import Modal from '$/components/base/Modal.svelte'
 	import { appState } from '$/stores'
-	import type { TInvoiceItemType } from '$/types'
+	import { invoiceItemLogSchema, type TInvoiceItemLog } from '$/types'
 	import { addItem } from '$/utils/invoice'
 
-	let title: string
-	let description: string
-	let type: TInvoiceItemType
-	let qty: number
-	let cost: number
+	let formData: TInvoiceItemLog = invoiceItemLogSchema.parse({})
 
-	function onSubmit(e: SubmitEvent) {
-		const form = e.currentTarget as HTMLFormElement
-		if ($appState.selectedInvoiceId) {
-			addItem($appState.selectedInvoiceId, title, type, cost, qty, description)
-			form.reset()
-		}
+	function onOpen() {
+		formData = invoiceItemLogSchema.parse({})
+	}
+
+	function onSubmit() {
+		if (!$appState.selectedInvoiceId) return
+
+		const { title, type, cost, qty, description } = invoiceItemLogSchema.parse(formData)
+		addItem($appState.selectedInvoiceId, title, type, cost, qty, description)
 	}
 </script>
 
-<Modal bind:open={$addNewItemModalOpen}>
+<Modal bind:open={$addNewItemModalOpen} on:open={onOpen}>
 	<h3 class="font-bold text-lg">Add New Item</h3>
 	<form class="flex flex-col" method="dialog" on:submit={onSubmit}>
 		<div class="form-control w-full gap-1">
@@ -34,7 +33,7 @@
 						type="radio"
 						name="type"
 						class="radio checked:bg-blue-500"
-						bind:group={type}
+						bind:group={formData.type}
 						value="GOODS"
 						required
 					/>
@@ -46,7 +45,7 @@
 						type="radio"
 						name="type"
 						class="radio checked:bg-blue-500"
-						bind:group={type}
+						bind:group={formData.type}
 						value="SERVICES"
 					/>
 				</label>
@@ -61,7 +60,7 @@
 				placeholder="Type here"
 				class="input input-bordered w-full invalid:input-error"
 				required
-				bind:value={title}
+				bind:value={formData.title}
 			/>
 			<label for="item-description" class="label">
 				<span class="label-text">Item Description</span>
@@ -71,7 +70,7 @@
 				name="description"
 				class="textarea textarea-bordered"
 				placeholder="Description"
-				bind:value={description}
+				bind:value={formData.description}
 			/>
 			<label for="item-qty" class="label">
 				<span class="label-text">Quantity</span>
@@ -84,7 +83,7 @@
 				class="input input-bordered w-full invalid:input-error"
 				min="1"
 				required
-				bind:value={qty}
+				bind:value={formData.qty}
 			/>
 			<label for="item-price" class="label">
 				<span class="label-text">Price</span>
@@ -96,7 +95,7 @@
 				placeholder="Type here"
 				class="input input-bordered w-full invalid:input-error"
 				required
-				bind:value={cost}
+				bind:value={formData.cost}
 			/>
 		</div>
 		<div class="modal-action">
@@ -105,7 +104,7 @@
 			>
 			<button class="btn btn-success flex gap-1 items-center">
 				<span class="i-mdi-add text-lg" />
-				<span> Add </span>
+				<span>Add</span>
 			</button>
 		</div>
 	</form>

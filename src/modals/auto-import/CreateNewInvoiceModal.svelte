@@ -18,15 +18,12 @@
 		})
 	}
 
-	function onSubmit(e: SubmitEvent) {
-		const form = e.currentTarget as HTMLFormElement
+	function onSubmit() {
 		const data = invoiceSchema.parse(formData)
-		console.log(data)
 
 		createInvoice(data.title, data.senderId, data.recipientId, data.currency)
 
 		$appState.drawerVisible = false
-		form.reset()
 	}
 
 	async function newAddress(): Promise<string> {

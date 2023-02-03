@@ -10,20 +10,20 @@
 
 	let formData: TEntity = entitySchema.parse({})
 
-	/// METHODS ///
-	function onSubmit(e: SubmitEvent) {
-		const form = e.currentTarget as HTMLFormElement
+	function onOpen() {
+		formData = entitySchema.parse({})
+	}
 
+	/// METHODS ///
+	function onSubmit() {
 		const data = entitySchema.parse(formData)
 		const { id } = addAddress(data.name, data.address)
 		$appState.selectedAddressId = id
 		$appState.drawerVisible = false
-
-		form.reset()
 	}
 </script>
 
-<Modal bind:open={$addNewAddressModalOpen}>
+<Modal bind:open={$addNewAddressModalOpen} on:open={onOpen}>
 	<h3 class="font-bold text-lg">Add New Address</h3>
 	<form class="flex flex-col" method="dialog" on:submit={onSubmit}>
 		<div class="form-control w-full gap-1">

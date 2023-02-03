@@ -161,7 +161,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="grid gap-5 mt-5 grid-cols-[repeat(auto-fill,minmax(300ox,1fr))]">
+		<div class="grid gap-5 mt-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
 			{#each invoice.logs as log}
 				<Item {...log} />
 			{/each}
