@@ -1,7 +1,21 @@
 <script lang="ts">
 	import Address from '$/components/Address.svelte'
 	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
-	import { userState } from '$/stores'
+	import { appState, userState } from '$/stores'
+
+	onMount(() => {
+		$appState.actions = [
+			{
+				icon: 'i-mdi-add',
+				label: 'Add',
+				color: 'btn-primary',
+				action: () => ($addNewAddressModalOpen = true)
+			}
+		]
+	})
+	onDestroy(() => {
+		$appState.actions = []
+	})
 </script>
 
 {#if $userState.addressbook.length === 0}

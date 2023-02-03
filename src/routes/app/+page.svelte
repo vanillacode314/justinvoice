@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Invoice from '$/components/Invoice.svelte'
 	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
-	import { userState } from '$/stores'
+	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
+	import { appState, userState } from '$/stores'
 	import type { TInvoice } from '$/types'
 
 	let invoices: TInvoice[]
@@ -9,9 +10,41 @@
 	$: {
 		;({ invoices } = $userState)
 	}
+
+	onMount(() => {
+		$appState.actions = [
+			{
+				icon: 'i-mdi-import',
+				label: 'Import Invoice(s)',
+				action: importInvoices
+			},
+			{
+				icon: 'i-mdi-export',
+				label: 'Export All',
+				action: async () => {
+					const name = await prompt({
+						icon: 'i-mdi-export',
+						title: 'Export Invoices',
+						message: 'Enter filename (timestamp will be auto appended to the name):',
+						initialValue: `justinvoices`
+					})
+					exportAll(name)
+				}
+			},
+			{
+				icon: 'i-mdi-add',
+				label: 'Add',
+				color: 'btn-primary',
+				action: () => ($createNewInvoiceModalOpen = true)
+			}
+		]
+	})
+	onDestroy(() => {
+		$appState.actions = []
+	})
 </script>
 
-<div class="p-5 h-full">
+<div class="p-5">
 	{#if invoices.length > 0}
 		<div class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
 			{#each invoices as invoice (invoice.id)}

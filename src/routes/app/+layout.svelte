@@ -1,5 +1,4 @@
 <script lang="ts">
-	import '$/app.css'
 	import AppShell from '$/components/AppShell.svelte'
 	import Spinner from '$/components/base/Spinner.svelte'
 	import { alert } from '$/modals/auto-import/AlertModal.svelte'
@@ -13,7 +12,6 @@
 	} from '$/types'
 	import { browser } from '$app/environment'
 	import { navigating } from '$app/stores'
-	import 'uno.css'
 
 	const modals = import.meta.glob('$/modals/auto-import/*.svelte', {
 		eager: true,

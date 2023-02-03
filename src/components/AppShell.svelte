@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
 	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
-	import { appState } from '$/stores'
+	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
+	import { appState, type TAction } from '$/stores'
 	import { page } from '$app/stores'
 
 	interface ILink {
@@ -30,7 +31,15 @@
 					icon: 'i-mdi-add'
 				},
 				{
-					clickHandler: exportAll,
+					clickHandler: async () => {
+						const name = await prompt({
+							icon: 'i-mdi-export',
+							title: 'Export Invoices',
+							message: 'Enter filename (timestamp will be auto appended to the name):',
+							initialValue: `justinvoices`
+						})
+						exportAll(name)
+					},
 					title: 'Export All Invoices',
 					icon: 'i-mdi-export'
 				},
@@ -59,6 +68,11 @@
 			icon: 'i-mdi-cog'
 		}
 	]
+
+	let fabOpen: boolean = false
+	$: actions = (
+		fabOpen ? $appState.actions.filter((item) => item !== 'spacer' && !item.noFab) : []
+	) as TAction[]
 </script>
 
 <div class="drawer drawer-mobile">
@@ -69,8 +83,58 @@
 		bind:checked={$appState.drawerVisible}
 	/>
 	<div class="drawer-content flex flex-col">
+		<!-- Toolbar -->
+		<div class="p-5 hidden lg:flex justify-end gap-5">
+			{#each $appState.actions as item, index (item === 'spacer' ? `spacer-${index}` : item.label)}
+				{#if item !== 'spacer'}
+					{@const { icon, action, label, color } = item}
+					<button
+						in:scale={{ duration: 150 }}
+						class="btn btn-sm flex gap-1 {color} items-center"
+						on:click={action}
+					>
+						<span class="{icon} text-lg" />
+						<span>{label}</span>
+					</button>
+				{:else}
+					<span class="grow" />
+				{/if}
+			{/each}
+		</div>
+		<!-- Fab -->
+		<div class="fixed bottom-0 right-0 lg:hidden p-5 z-30">
+			<div class="flex flex-col-reverse items-center gap-3">
+				<button
+					class="p-5 grid place-content-center bg-stone-800 shadow-lg rounded-full transition hover:bg-stone-700 focus:bg-stone-700"
+					style="transform-style: preserve-3d"
+					class:rotate-90={fabOpen}
+					class:bg-stone-700={fabOpen}
+					class:bg-stone-800={!fabOpen}
+					on:click={() => (fabOpen = !fabOpen)}
+				>
+					<span class="{fabOpen ? 'i-mdi-close' : 'i-mdi-menu'} text-xl" />
+				</button>
+				<div class="flex flex-col-reverse items-center gap-3">
+					{#each [...actions].reverse() as { color, icon, label, action, noClose }, index (label)}
+						<button
+							out:fly={{ duration: 100, delay: 50 * (actions.length - index), y: 10 * index }}
+							in:fly={{ duration: 100, delay: 50 * index, y: 10 * (actions.length - index) }}
+							class="btn btn-circle p-3 grid place-content-center {color} shadow-lg rounded-full transition-transform"
+							on:click={() => {
+								action()
+								if (!noClose) {
+									fabOpen = false
+								}
+							}}
+						>
+							<span class="{icon} text-xl" />
+						</button>
+					{/each}
+				</div>
+			</div>
+		</div>
 		<!-- Navbar -->
-		<div class="w-full navbar lg:hidden">
+		<div class="w-full navbar lg:hidden sticky top-0 z-30 bg-base-300">
 			<div class="flex-none lg:hidden">
 				<label for="my-drawer-3" class="btn btn-square btn-ghost">
 					<span class="i-mdi-menu text-xl" />
@@ -82,12 +146,12 @@
 		<slot />
 	</div>
 	<!-- Sidebar -->
-	<div class="drawer-side border-r border-gray-700 grid-rows-[1fr,auto]">
+	<div class="drawer-side grid-rows-[1fr,auto]">
 		<label for="my-drawer-3" class="drawer-overlay" />
-		<ul class="menu lg:menu-compact p-4 overflow-y-auto w-80 bg-base-100 gap-3">
+		<ul class="menu lg:menu-compact p-4 overflow-y-auto w-80 bg-base-200 gap-3">
 			<!-- Sidebar content here -->
-			<h2 class="pt-5 text-2xl font-bold text-center">JustInvoice</h2>
-			<div class="divider" />
+			<h2 class="py-5 text-2xl uppercase font-black tracking-wide text-center">JustInvoice</h2>
+			<!-- <div class="divider" /> -->
 			{#each links as { href, title, icon, actions } (href)}
 				{@const active = $page.url.pathname === href}
 				<li>
@@ -118,7 +182,7 @@
 				{/each}
 			{/each}
 			<span class="grow" />
-			<div class="text-center px-5 underline hover:text-primary">
+			<div class="text-center px-5 underline hover:text-primary transition-colors">
 				<a href="https://raqueebuddinaziz.com">Made By Raqueebuddin Aziz</a>
 			</div>
 			<div class="text-center px-5">

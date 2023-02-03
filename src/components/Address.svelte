@@ -18,7 +18,8 @@
 <div class="card max-w-96 bg-stone-900 shadow p-5 flex flex-col gap-3">
 	<h2 class="card-title">{name}</h2>
 	<p>{address}</p>
-	<div class="card-actions justify-end mt-auto">
+	<span class="grow" />
+	<div class="card-actions justify-end">
 		<button class="btn btn-primary btn-sm flex gap-1 items-center" on:click={onEdit}>
 			<span class="i-mdi-edit" />
 			<span>Edit</span>

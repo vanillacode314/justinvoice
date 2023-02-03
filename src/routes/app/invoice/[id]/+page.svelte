@@ -17,6 +17,7 @@
 	$: invoice = $userState.invoices.find((i) => i.id === id)
 	$: $appState.selectedInvoiceId = id
 	let loading: boolean = true
+	let deleteInvoiceModalOpen: boolean = false
 
 	$: recipient = $userState.addressbook.find(({ id }) => id == invoice?.recipientId)
 	$: sender = $userState.addressbook.find(({ id }) => id == invoice?.senderId)
@@ -46,7 +47,7 @@
 		$addNewItemModalOpen = true
 	}
 
-	function editItem() {
+	function editInvoice() {
 		$editInvoiceModalOpen = true
 	}
 
@@ -80,6 +81,45 @@
 	/// LIFECYCLE HOOKS ///
 	onMount(() => {
 		loading = false
+		$appState.actions = [
+			{
+				icon: 'i-mdi-arrow-back',
+				label: 'Back',
+				action: () => goto('/app'),
+				noFab: true
+			},
+			'spacer',
+			{
+				icon: 'i-mdi-printer',
+				label: 'Print',
+				action: print
+			},
+			{
+				icon: 'i-mdi-export',
+				label: 'Export',
+				action: exportInvoice
+			},
+			{
+				icon: 'i-mdi-trash',
+				label: 'Delete',
+				action: () => (deleteInvoiceModalOpen = true)
+			},
+			{
+				icon: 'i-mdi-edit',
+				label: 'Edit',
+				action: editInvoice
+			},
+			{
+				icon: 'i-mdi-add',
+				label: 'Add Item',
+				color: 'btn-primary',
+				action: addItem
+			}
+		]
+	})
+
+	onDestroy(() => {
+		$appState.actions = []
 	})
 </script>
 
@@ -87,82 +127,44 @@
 	{#if loading}
 		<Spinner />
 	{:else if invoice}
-		<div class="flex flex-col gap-5">
-			<a
-				class="grid h-5 w-5 place-content-center bg-stone-900 p-5 rounded-full hover:bg-stone-800 focus:bg-stone-800"
-				href="/app"
-			>
-				<div class="i-mdi-arrow-left" />
-			</a>
-			<div
-				class="card w-full shadow-xl card-compact transition-colors"
-				class:bg-red-900={!invoice.paid}
-				class:bg-green-900={invoice.paid}
-			>
-				<div class="card-body flex flex-col !p-8 gap-5">
-					<h2 class="card-title">
-						<span>{invoice.title}</span>
-						<!-- <div class="badge badge-outline">ID: {invoice.id}</div> -->
-						<span class="grow" />
-						<div class="form-control">
-							<label class="label cursor-pointer gap-3">
-								<input
-									type="checkbox"
-									class="toggle toggle-sm"
-									bind:checked={invoice.paid}
-									on:change={onPaidChange}
-								/>
-								<span class="label-text">Paid</span>
-							</label>
-						</div>
-					</h2>
-					<div class="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
-						{#each stats as { label, value } (label)}
-							<article class="flex w-full flex-col gap-1 p-5 bg-black/10 rounded-xl">
-								<span class="font-medium uppercase tracking-wide text-xs">{label}</span>
-								<span class="text-xl font-bold">
-									{value}
-								</span>
-							</article>
-						{/each}
+		<div
+			class="card w-full shadow-xl card-compact transition-colors"
+			class:bg-red-900={!invoice.paid}
+			class:bg-green-900={invoice.paid}
+		>
+			<div class="card-body flex flex-col !p-8 gap-5">
+				<h2 class="card-title">
+					<span>{invoice.title}</span>
+					<!-- <div class="badge badge-outline">ID: {invoice.id}</div> -->
+					<span class="grow" />
+					<div class="form-control">
+						<label class="label cursor-pointer gap-3">
+							<input
+								type="checkbox"
+								class="toggle toggle-sm"
+								bind:checked={invoice.paid}
+								on:change={onPaidChange}
+							/>
+							<span class="label-text">Paid</span>
+						</label>
 					</div>
-					<div class="card-actions items-end md:items-center flex-col md:flex-row">
-						<span class="grow" />
-						<button class="flex gap-1 items-center btn btn-ghost btn-sm" on:click={print}>
-							<span class="i-mdi-printer" />
-							<span>Print</span>
-						</button>
-						<button class="flex gap-1 items-center btn btn-ghost btn-sm" on:click={exportInvoice}>
-							<span class="i-mdi-export" />
-							<span>Export</span>
-						</button>
-						<ConfirmModal
-							icon="i-mdi-warning"
-							title="Delete Invoice"
-							message="Are you sure you want to delete this invoice and all of it's data?"
-							on:confirm={deleteInvoice}
-						>
-							<button class="flex gap-1 items-center btn btn-sm btn-ghost text-error">
-								<span class="i-mdi-trash" />
-								<span>Delete</span>
-							</button>
-						</ConfirmModal>
-						<button class="flex gap-1 items-center btn btn-sm btn-ghost" on:click={editItem}>
-							<span class="i-mdi-edit" />
-							<span>Edit</span>
-						</button>
-						<button class="flex gap-1 items-center btn btn-sm btn-primary" on:click={addItem}>
-							<span class="i-mdi-add" />
-							<span>Add Item</span>
-						</button>
-					</div>
+				</h2>
+				<div class="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+					{#each stats as { label, value } (label)}
+						<article class="flex w-full flex-col gap-1 p-5 bg-black/10 rounded-xl">
+							<span class="font-medium uppercase tracking-wide text-xs">{label}</span>
+							<span class="text-xl font-bold">
+								{value}
+							</span>
+						</article>
+					{/each}
 				</div>
 			</div>
-			<div class="grid gap-5" id="item-grid">
-				{#each invoice.logs as log}
-					<Item {...log} />
-				{/each}
-			</div>
+		</div>
+		<div class="grid gap-5 mt-5" id="item-grid">
+			{#each invoice.logs as log}
+				<Item {...log} />
+			{/each}
 		</div>
 	{:else}
 		<div class="flex flex-col gap-5 items-center h-full justify-center">

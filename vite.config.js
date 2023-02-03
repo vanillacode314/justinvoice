@@ -33,7 +33,7 @@ const config = {
 				presetWebFonts({
 					extendTheme: true,
 					fonts: {
-						sans: 'Inter:400,500,600,700'
+						sans: 'Inter:400,500,600,700,800,900'
 					}
 				}),
 				presetIcons({

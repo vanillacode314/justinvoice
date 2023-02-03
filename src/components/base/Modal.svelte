@@ -1,6 +1,7 @@
 <script lang="ts">
 	let dialogElement: HTMLDialogElement
 	export let open: boolean = false
+	let openedOnce: boolean = false
 
 	const dispatch = createEventDispatcher()
 
@@ -8,9 +9,9 @@
 		open ? dialogElement.showModal() : dialogElement.close()
 	}
 
-	$: tick().then(() => dispatch(open ? 'open' : 'close'))
-
+	$: if (openedOnce) dispatch(open ? 'open' : 'close')
 	$: open && tick().then(() => fadeIn(dialogElement))
+	$: openedOnce = openedOnce || open
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->

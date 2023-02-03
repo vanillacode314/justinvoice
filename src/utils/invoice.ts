@@ -75,7 +75,7 @@ export function addItem(
 	return log
 }
 
-export function exportAll() {
+export function exportAll(filename: string = 'justinvoices') {
 	const dateString = new Date().toLocaleString(undefined, {
 		dateStyle: 'short',
 		timeStyle: 'short',
@@ -89,7 +89,7 @@ export function exportAll() {
 				addressbook: true
 			})
 			.parse(get(userState)),
-		`justinvoices-${dateString}.json`
+		`${filename}-${dateString}.json`
 	)
 }
 
