@@ -124,7 +124,9 @@
 			<div class="flex-1 px-2 mx-2">JustInvoice</div>
 		</div>
 		<!-- Main -->
-		<slot />
+		<div class="shrink-0">
+			<slot />
+		</div>
 	</div>
 	<!-- Sidebar -->
 	<div class="drawer-side grid-rows-[1fr,auto]">

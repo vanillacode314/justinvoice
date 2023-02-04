@@ -26,7 +26,7 @@
 			const result = invoiceSchema.safeParse(formData)
 			if (!result.success) {
 				for (const error of result.error.errors) {
-					toast('Invalid Data', error.message, 'error')
+					toast('Invalid Data', error.message, { type: 'error', duration: 5000 })
 				}
 				e.preventDefault()
 				return
@@ -124,8 +124,8 @@
 				>Cancel</button
 			>
 			<button class="flex gap-1 items-center btn btn-success">
-				<span class="i-mdi-add text-lg" />
-				<span>Create</span>
+				<span class="i-mdi-floppy text-lg" />
+				<span>Save</span>
 			</button>
 		</div>
 	</form>

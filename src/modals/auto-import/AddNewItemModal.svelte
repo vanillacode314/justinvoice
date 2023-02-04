@@ -21,8 +21,6 @@
 		const { title, type, cost, qty, description } = invoiceItemLogSchema.parse(formData)
 		addItem($appState.selectedInvoiceId, title, type, cost, qty, description)
 	}
-
-	$: console.log(formData.type)
 </script>
 
 <Modal bind:open={$addNewItemModalOpen} on:open={onOpen}>

@@ -4,10 +4,12 @@
 	interface $$Props extends Omit<HTMLSelectAttributes, 'class' | 'id'> {
 		id: string
 		label: string
+		value: string
 	}
 
 	export let id: string
 	export let label: string = ''
+	export let value: string
 </script>
 
 <div class="flex flex-col gap-1">
@@ -17,7 +19,9 @@
 
 	<select
 		{id}
+		bind:value
 		class="select rounded-xl select-bordered w-full invalid:select-error"
+		on:change
 		{...$$restProps}
 	>
 		<slot />

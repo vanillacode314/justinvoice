@@ -6,6 +6,7 @@
 		label: string
 		textarea?: boolean
 		group?: string | string[]
+		value: string | number
 	}
 
 	$: type = $$restProps.type
@@ -14,6 +15,7 @@
 	export let label: string = ''
 	export let textarea: boolean = false
 	export let group: string | string[] = type === 'checkbox' ? [] : ''
+	export let value: string | number
 
 	let inputElement!: HTMLInputElement
 </script>
@@ -37,13 +39,20 @@
 		}}>{label}</label
 	>
 	{#if textarea}
-		<textarea {id} class={'textarea textarea-bordered rounded-xl'} {...$$restProps} />
+		<textarea
+			on:input
+			{id}
+			bind:value
+			class={'textarea textarea-bordered rounded-xl'}
+			{...$$restProps}
+		/>
 	{:else if type === 'radio'}
 		<input
 			bind:this={inputElement}
 			{id}
+			{value}
 			type="radio"
-			checked={group === $$restProps.value}
+			checked={group === value}
 			on:change={(e) => {
 				if (e.currentTarget.checked) group = e.currentTarget.value
 			}}
@@ -53,9 +62,10 @@
 	{:else if type === 'checkbox'}
 		<input
 			{id}
+			{value}
 			bind:this={inputElement}
 			type="checkbox"
-			checked={group.includes($$restProps.value)}
+			checked={group.includes(String(value))}
 			on:change={(e) => {
 				if (!Array.isArray(group)) group = []
 
@@ -71,6 +81,15 @@
 		/>
 	{:else}
 		<input
+			{value}
+			on:input={(e) => {
+				if (type === 'number') {
+					value = +e.currentTarget.value
+					return
+				}
+				value = e.currentTarget.value
+			}}
+			on:input
 			bind:this={inputElement}
 			{id}
 			class={textarea

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Input from '$/components/base/Input.svelte'
+	import Select from '$/components/base/Select.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { userState, userStateSchema } from '$/stores'
 	import { entitySchema, invoiceSchema, type TEntity, type TInvoice } from '$/types'
@@ -10,8 +12,7 @@
 
 	/// METHODS ///
 	function onChange() {
-		$userState.defaultSender = defaultSender
-		$userState.defaultCurrency = defaultCurrency
+		Object.assign($userState, { defaultSender, defaultCurrency })
 		$userState = $userState
 	}
 
@@ -27,43 +28,29 @@
 </script>
 
 <div class="p-5 flex flex-col gap-5">
-	<div>
-		<label
-			for="default-currency"
-			class="label uppercase font-semibold text-gray-400 tracking-wider text-xs"
-		>
-			<span>Default Currency</span>
-		</label>
-		<input
-			id="default-title"
-			type="text"
-			name="title"
-			placeholder="Type here"
-			class="input input-bordered w-full invalid:input-error"
-			required
-			bind:value={defaultCurrency}
-			on:input={onChange}
-		/>
-		<label
-			for="invoice-sender"
-			class="label uppercase font-semibold text-gray-400 tracking-wider text-xs"
-		>
-			<span>Default Sender</span>
-		</label>
-		<select
-			class="select select-bordered w-full invalid:select-error"
-			required
-			id="invoice-sender"
-			name="sender"
-			bind:value={defaultSender}
-			on:change={onChange}
-		>
-			<option value="" selected disabled>Pick a sender</option>
-			{#each $userState.addressbook as { id, name } (id)}
-				<option value={id}>{name}</option>
-			{/each}
-		</select>
-	</div>
+	<Input
+		label="Default Currency"
+		id="default-title"
+		type="text"
+		name="title"
+		placeholder="Type here"
+		required
+		bind:value={defaultCurrency}
+		on:input={onChange}
+	/>
+	<Select
+		label="Default Sender"
+		required
+		id="invoice-sender"
+		name="sender"
+		bind:value={defaultSender}
+		on:change={onChange}
+	>
+		<option value="" selected disabled>Pick a sender</option>
+		{#each $userState.addressbook as { id, name } (id)}
+			<option value={id}>{name}</option>
+		{/each}
+	</Select>
 	<ConfirmModal
 		title="Delete all data?"
 		message="Are you sure you would like to delete all data?"

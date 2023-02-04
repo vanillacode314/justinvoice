@@ -9,14 +9,14 @@
 	const messages = writable<Message[]>([])
 
 	interface Opts {
+		type: MessageType
 		duration: number
 	}
 
 	export function toast(
 		title: string,
 		content: string,
-		type: MessageType = 'info',
-		{ duration = 3000 }: Partial<Opts> = {}
+		{ type = 'info', duration = 3000 }: Partial<Opts> = {}
 	): Message {
 		const message = {
 			id: crypto.randomUUID(),
@@ -48,10 +48,19 @@
 	} satisfies Record<MessageType, string>
 </script>
 
-<div class="toast">
+<script lang="ts">
+	let innerWidth: number
+</script>
+
+<svelte:window bind:innerWidth />
+<div
+	class="toast min-w-full"
+	class:toast-top={innerWidth < 768}
+	class:toast-center={innerWidth < 768}
+>
 	{#each $messages as { id, title, content, type } (id)}
 		<div
-			class="alert"
+			class="alert items-start"
 			class:alert-info={type === 'info'}
 			class:alert-warning={type === 'warning'}
 			class:alert-error={type === 'error'}
@@ -60,7 +69,7 @@
 			animate:flip
 		>
 			<div class="flex gap-3">
-				<span class="{iconMap[type]} text-3xl" />
+				<span class="shrink-0 {iconMap[type]} text-3xl" />
 				<div class="flex flex-col gap-1 items-start">
 					<span class="uppercase font-bold tracking-wider text-xs">{title}</span>
 					<span class="text-sm">{content}</span>

@@ -95,8 +95,8 @@
 				>Cancel</button
 			>
 			<button class="btn btn-success flex gap-1 items-center">
-				<span class="i-mdi-add text-lg" />
-				<span>Add</span>
+				<span class="i-mdi-floppy text-lg" />
+				<span>Save</span>
 			</button>
 		</div>
 	</form>
