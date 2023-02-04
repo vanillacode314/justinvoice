@@ -24,6 +24,8 @@
 </script>
 
 <script lang="ts">
+	import Input from '$/components/base/Input.svelte'
+
 	import Modal from '$components/base/Modal.svelte'
 </script>
 
@@ -55,8 +57,7 @@
 				</span>
 			{/if}
 		</h3>
-		<p class="uppercase font-semibold text-gray-400 tracking-wider text-xs">{$message}</p>
-		<input class="input input-bordered" bind:value={$input} />
+		<Input id="prompt" label={$message} bind:value={$input} />
 		<div class="modal-action">
 			<button type="submit" class="btn btn-primary flex gap-1 items-center">
 				<span class="i-mdi-check text-lg" />

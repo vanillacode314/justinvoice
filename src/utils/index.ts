@@ -57,3 +57,20 @@ export function diffByKey<T extends Record<string, unknown>>(
 ) {
 	return array1.filter((value1) => !array2.some((value2) => value2[key] === value1[key]))
 }
+
+export function filterInPlace<T>(
+	array: T[],
+	predicate: (value: T, index: number, array: T[]) => boolean
+): void {
+	array.splice(0, array.length, ...array.filter(predicate))
+}
+
+export function removeInPlace<T>(
+	array: T[],
+	index: ((value: T, index: number, array: T[]) => boolean) | number
+): T {
+	if (typeof index !== 'number') {
+		index = array.findIndex(index)
+	}
+	return array.splice(index, 1)[0]
+}

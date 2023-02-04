@@ -21,18 +21,21 @@ export function addAddress(name: TEntity['name'], address: TEntity['address']): 
 	return entity
 }
 
-export const removeAddress = (id: TEntity['id']) => {
+export const removeAddresses = (ids: TEntity['id'][]) => {
+	if (ids.length === 0) return
 	userState.update((val) => {
 		const { invoices, addressbook } = val
-		invoices.splice(
-			0,
-			invoices.length,
-			...invoices.filter(({ senderId, recipientId }) => senderId !== id && recipientId !== id)
-		)
-		addressbook.splice(
-			addressbook.findIndex((address) => address.id === id),
-			1
-		)
+		if (ids.length === 1) {
+			const id = ids[0]
+			filterInPlace(invoices, ({ senderId, recipientId }) => id !== senderId && id !== recipientId)
+			removeInPlace(addressbook, (address) => address.id === id)
+		} else {
+			filterInPlace(
+				invoices,
+				({ senderId, recipientId }) => !ids.some((id) => id === senderId || id === recipientId)
+			)
+			filterInPlace(addressbook, (address) => !ids.includes(address.id))
+		}
 		return val
 	})
 }

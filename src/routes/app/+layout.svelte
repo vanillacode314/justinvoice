@@ -1,6 +1,7 @@
 <script lang="ts">
 	import AppShell from '$/components/AppShell.svelte'
 	import Spinner from '$/components/base/Spinner.svelte'
+	import Toast from '$/components/base/Toast.svelte'
 	import { alert } from '$/modals/auto-import/AlertModal.svelte'
 	import { userState } from '$/stores'
 	import {
@@ -97,18 +98,20 @@
 
 	onMount(() => {
 		importLegacyState()
+		history.replaceState('', '', window.location.pathname + window.location.search)
 	})
 </script>
 
 <AppShell>
 	{#if $navigating || !browser}
-		<div class="grid place-items-center p-5">
+		<div class="grid place-items-center h-full p-5">
 			<Spinner />
 		</div>
 	{:else}
 		<slot />
 	{/if}
 </AppShell>
+<Toast />
 
 {#each Object.values(modals) as modal}
 	<svelte:component this={modal} />

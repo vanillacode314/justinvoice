@@ -16,7 +16,7 @@
 </script>
 
 <a
-	class="card max-w-96 bg-stone-900 shadow overflow-visible cursor-pointer hover:shadow-none p-5 gap-1 transition hover:bg-stone-800"
+	class="card bg-stone-900 shadow overflow-visible cursor-pointer hover:shadow-none p-5 gap-1 transition hover:bg-stone-800"
 	href="/app/invoice/{id}"
 >
 	<h2 class="card-title justify-between items-baseline">

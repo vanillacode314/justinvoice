@@ -39,10 +39,23 @@ export function createInvoice(
 export function removeInvoice(id: TInvoice['id']) {
 	userState.update((val) => {
 		const { invoices } = val
-		invoices.splice(
-			invoices.findIndex((invoice) => invoice.id != id),
-			1
-		)
+		removeInPlace(invoices, (invoice) => invoice.id === id)
+		return val
+	})
+}
+
+export const removeItems = (invoiceId: TInvoice['id'], ids: TInvoiceItemLog['id'][]) => {
+	if (ids.length === 0) return
+	userState.update((val) => {
+		const { invoices } = val
+		const invoice = invoices.find(({ id }) => id === invoiceId)
+		if (!invoice) return val
+		if (ids.length === 1) {
+			const id = ids[0]
+			removeInPlace(invoice.logs, (item) => item.id === id)
+		} else {
+			filterInPlace(invoice.logs, (item) => !ids.includes(item.id))
+		}
 		return val
 	})
 }

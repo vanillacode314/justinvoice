@@ -1,19 +1,52 @@
 <script lang="ts">
 	import Address from '$/components/Address.svelte'
 	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
-	import { appState, userState } from '$/stores'
+	import ConfirmModal from '$/modals/ConfirmModal.svelte'
+	import { actionSchema, appState, userState } from '$/stores'
+
+	let selectedAddresses: boolean[] = []
+	let deleteModalOpen: boolean = false
+
+	$: $appState.selectionMode = selectedAddresses.some((val) => val === true)
+	$: selectedAddresses.length = $userState.addressbook.length
+
+	$: $appState.actions = z.array(actionSchema).parse(
+		$appState.selectionMode
+			? [
+					{
+						icon: 'i-mdi-trash',
+						label: 'Delete',
+						action: () => (deleteModalOpen = true)
+					}
+			  ]
+			: [
+					{
+						icon: 'i-mdi-add',
+						label: 'Add',
+						color: 'btn-primary',
+						action: () => ($addNewAddressModalOpen = true)
+					}
+			  ]
+	)
 
 	onMount(() => {
-		$appState.actions = [
+		$appState.actions = z.array(actionSchema).parse([
 			{
 				icon: 'i-mdi-add',
 				label: 'Add',
 				color: 'btn-primary',
 				action: () => ($addNewAddressModalOpen = true)
+			},
+			{
+				icon: 'i-mdi-trash',
+				label: 'Delete',
+				action: () => (deleteModalOpen = true)
 			}
-		]
+		])
 	})
+
 	onDestroy(() => {
+		selectedAddresses.fill(false)
 		$appState.actions = []
 	})
 </script>
@@ -32,8 +65,28 @@
 	</div>
 {:else}
 	<div class="p-5 grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-		{#each $userState.addressbook as address (address.id)}
-			<Address {...address} />
+		{#each $userState.addressbook as address, index (address.id)}
+			<div
+				animate:flip={{ duration: 300 }}
+				in:fade={{ duration: 150 }}
+				out:scale|local
+				class="grid"
+			>
+				<Address {...address} bind:selected={selectedAddresses[index]} />
+			</div>
 		{/each}
 	</div>
 {/if}
+<ConfirmModal
+	bind:open={deleteModalOpen}
+	icon="i-mdi-warning"
+	title="Delete Selected Addresses"
+	message="Are you sure, you would like to delete all selected addresses and the invoices which use them?"
+	on:confirm={() => {
+		const addresses = $userState.addressbook.filter(
+			(_address, index) => selectedAddresses[index] === true
+		)
+		removeAddresses(addresses.map(({ id }) => id))
+		selectedAddresses.fill(false)
+	}}
+/>

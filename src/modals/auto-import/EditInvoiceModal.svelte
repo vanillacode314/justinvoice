@@ -3,7 +3,10 @@
 </script>
 
 <script lang="ts">
+	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
+	import Select from '$/components/base/Select.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { appState, userState } from '$/stores'
 	import { invoiceSchema, type TInvoice } from '$/types'
 	import { addNewAddressModalOpen } from './AddNewAddressModal.svelte'
@@ -17,10 +20,18 @@
 		formData = invoiceSchema.parse(selectedInvoice)
 	}
 
-	function onSubmit() {
+	function onSubmit(e: SubmitEvent) {
 		console.log('SUBMIT')
 		if (selectedInvoice) {
-			const { title, currency, senderId, recipientId } = invoiceSchema.parse(formData)
+			const result = invoiceSchema.safeParse(formData)
+			if (!result.success) {
+				for (const error of result.error.errors) {
+					toast('Invalid Data', error.message, 'error')
+				}
+				e.preventDefault()
+				return
+			}
+			const { title, currency, senderId, recipientId } = result.data
 			Object.assign(selectedInvoice, { title, currency, senderId, recipientId })
 			$userState = $userState
 		}
@@ -49,87 +60,72 @@
 
 <Modal bind:open={$editInvoiceModalOpen} on:open={onOpen}>
 	<h3 class="font-bold text-lg">Edit Item</h3>
-	<form class="flex flex-col" on:submit={onSubmit} method="dialog">
-		<div class="form-control w-full gap-1">
-			<label for="invoice-title" class="label">
-				<span class="label-text">Invoice Title</span>
-			</label>
-			<input
-				id="invoice-title"
-				type="text"
-				name="title"
-				placeholder="Type here"
-				class="input input-bordered w-full invalid:input-error"
+	<form class="flex flex-col gap-5 mt-5" on:submit={onSubmit} method="dialog">
+		<Input
+			label="Invoice Title"
+			id="invoice-title"
+			type="text"
+			name="title"
+			placeholder="Type here"
+			required
+			bind:value={formData.title}
+		/>
+		<div class="grid grid-cols-[1fr_auto] gap-3 items-end">
+			<Select
 				required
-				bind:value={formData.title}
-			/>
-			<label for="invoice-sender" class="label">
-				<span class="label-text">Sender's Address</span>
-			</label>
-			<div class="grid grid-cols-[1fr_auto] gap-3">
-				<select
-					class="select select-bordered w-full invalid:select-error"
-					required
-					id="invoice-sender"
-					name="sender"
-					bind:value={formData.senderId}
-				>
-					<option value="" disabled selected>Pick an address</option>
-					{#each $userState.addressbook as { id, name } (id)}
-						<option value={id}>{name}</option>
-					{/each}
-				</select>
-				<button
-					type="button"
-					class="btn"
-					on:click={() => newAddress().then((id) => (formData.senderId = id))}
-				>
-					New Address</button
-				>
-			</div>
-			<label for="invoice-recipient" class="label">
-				<span class="label-text">Recipient's Address</span>
-			</label>
-			<div class="grid grid-cols-[1fr_auto] gap-3">
-				<select
-					class="select select-bordered w-full invalid:select-error"
-					required
-					name="recipient"
-					id="invoice-recipient"
-					bind:value={formData.recipientId}
-				>
-					<option value="" disabled selected>Pick an address</option>
-					{#each $userState.addressbook as { id, name } (id)}
-						<option value={id}>{name}</option>
-					{/each}
-				</select>
-				<button
-					type="button"
-					class="btn"
-					on:click={() => newAddress().then((id) => (formData.recipientId = id))}
-					>New Address</button
-				>
-			</div>
-			<label for="invoice-currency" class="label">
-				<span class="label-text">Currency</span>
-			</label>
-			<input
-				id="invoice-currency"
-				type="text"
-				name="currency"
-				placeholder="Type here"
-				class="input input-bordered w-full invalid:input-error"
-				required
-				bind:value={formData.currency}
-			/>
+				id="invoice-sender"
+				name="sender"
+				label="Sender's Address"
+				bind:value={formData.senderId}
+			>
+				<option value="" disabled selected>Pick an address</option>
+				{#each $userState.addressbook as { id, name } (id)}
+					<option value={id}>{name}</option>
+				{/each}
+			</Select>
+			<button
+				type="button"
+				class="btn"
+				on:click={() => newAddress().then((id) => (formData.senderId = id))}
+			>
+				New Address</button
+			>
 		</div>
+		<div class="grid grid-cols-[1fr_auto] gap-3 items-end">
+			<Select
+				label="Recipient's Address"
+				required
+				name="recipient"
+				id="invoice-recipient"
+				bind:value={formData.recipientId}
+			>
+				<option value="" disabled selected>Pick an address</option>
+				{#each $userState.addressbook as { id, name } (id)}
+					<option value={id}>{name}</option>
+				{/each}
+			</Select>
+			<button
+				type="button"
+				class="btn"
+				on:click={() => newAddress().then((id) => (formData.recipientId = id))}>New Address</button
+			>
+		</div>
+		<Input
+			id="invoice-currency"
+			label="Currency"
+			type="text"
+			name="currency"
+			placeholder="Type here"
+			required
+			bind:value={formData.currency}
+		/>
 		<div class="modal-action">
 			<button type="button" on:click={() => ($editInvoiceModalOpen = false)} class="btn btn-ghost"
 				>Cancel</button
 			>
 			<button class="flex gap-1 items-center btn btn-success">
-				<span class="i-mdi-floppy text-lg" />
-				<span>Save</span>
+				<span class="i-mdi-add text-lg" />
+				<span>Create</span>
 			</button>
 		</div>
 	</form>

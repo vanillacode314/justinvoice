@@ -3,6 +3,7 @@
 	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
 	import { appState, type TAction } from '$/stores'
+	import { browser } from '$app/environment'
 	import { page } from '$app/stores'
 	import Fab from './Fab.svelte'
 
@@ -39,6 +40,7 @@
 							message: 'Enter filename (timestamp will be auto appended to the name):',
 							initialValue: `justinvoices`
 						})
+						if (!name) return
 						exportAll(name)
 					},
 					title: 'Export All Invoices',
@@ -71,6 +73,15 @@
 	]
 
 	$: actions = $appState.actions.filter((item) => item !== 'spacer' && !item.noFab) as TAction[]
+
+	$: if (browser) {
+		if ($appState.drawerVisible) {
+			history.pushState('drawer', '', '#drawer')
+			window.addEventListener('popstate', () => ($appState.drawerVisible = false), { once: true })
+		} else if (history.state === 'drawer') {
+			history.back()
+		}
+	}
 </script>
 
 <div class="drawer drawer-mobile">
@@ -80,7 +91,7 @@
 		class="drawer-toggle"
 		bind:checked={$appState.drawerVisible}
 	/>
-	<div class="drawer-content flex flex-col">
+	<div class="drawer-content flex flex-col" id="scroller">
 		<!-- Toolbar -->
 		<div class="p-5 hidden lg:flex justify-end gap-5">
 			{#each $appState.actions as item, index (item === 'spacer' ? `spacer-${index}` : item.label)}

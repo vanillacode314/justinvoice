@@ -2,7 +2,7 @@
 	import Invoice from '$/components/Invoice.svelte'
 	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
-	import { appState, userState } from '$/stores'
+	import { actionSchema, appState, userState } from '$/stores'
 	import type { TInvoice } from '$/types'
 
 	let invoices: TInvoice[]
@@ -12,7 +12,7 @@
 	}
 
 	onMount(() => {
-		$appState.actions = [
+		$appState.actions = z.array(actionSchema).parse([
 			{
 				icon: 'i-mdi-import',
 				label: 'Import Invoice(s)',
@@ -28,6 +28,7 @@
 						message: 'Enter filename (timestamp will be auto appended to the name):',
 						initialValue: `justinvoices`
 					})
+					if (!name) return
 					exportAll(name)
 				}
 			},
@@ -35,20 +36,29 @@
 				icon: 'i-mdi-add',
 				label: 'Add',
 				color: 'btn-primary',
-				action: () => ($createNewInvoiceModalOpen = true)
+				action: () => {
+					$createNewInvoiceModalOpen = true
+				}
 			}
-		]
+		])
 	})
 	onDestroy(() => {
 		$appState.actions = []
 	})
 </script>
 
-<div class="p-5">
+<div class="p-5 min-h-full">
 	{#if invoices.length > 0}
 		<div class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
 			{#each invoices as invoice (invoice.id)}
-				<Invoice {...invoice} />
+				<div
+					animate:flip={{ duration: 300 }}
+					in:fade={{ duration: 150 }}
+					out:scale|local
+					class="grid"
+				>
+					<Invoice {...invoice} />
+				</div>
 			{/each}
 		</div>
 	{:else}

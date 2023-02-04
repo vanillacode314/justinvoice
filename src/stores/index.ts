@@ -3,11 +3,11 @@ import { z } from 'zod'
 
 export const actionSchema = z.object({
 	icon: z.string(),
-	color: z.string().default('').optional(),
+	color: z.string().default(''),
 	label: z.string(),
-	action: z.function(z.tuple([]), z.void()),
-	noClose: z.boolean().default(false).optional(),
-	noFab: z.boolean().default(false).optional()
+	action: z.function(),
+	noClose: z.boolean().default(false),
+	noFab: z.boolean().default(false)
 })
 
 export type TAction = z.infer<typeof actionSchema>
@@ -17,7 +17,8 @@ export const appStateSchema = z.object({
 	selectedItemId: z.string().optional(),
 	selectedAddressId: z.string().optional(),
 	drawerVisible: z.boolean().default(false),
-	actions: z.array(actionSchema.or(z.literal('spacer'))).default(() => [])
+	selectionMode: z.boolean().default(false),
+	actions: z.array(actionSchema.or(z.literal('spacer'))).default(Array)
 })
 export type TAppState = z.infer<typeof appStateSchema>
 export const appState = writable<TAppState>(appStateSchema.parse({}))

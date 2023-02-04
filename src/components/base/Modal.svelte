@@ -11,14 +11,16 @@
 
 	$: if (openedOnce) dispatch(open ? 'open' : 'close')
 	$: open && tick().then(() => fadeIn(dialogElement))
-	$: openedOnce = openedOnce || open
+	$: if (!openedOnce) {
+		openedOnce = open
+	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialogElement}
 	on:close={() => (open = false)}
-	class="bg-transparent backdrop:bg-white/10 backdrop:backdrop-blur-sm w-full max-w-full h-full p-0 m-0"
+	class="bg-transparent backdrop:bg-white/10 w-full max-w-full h-full p-0 m-0"
 >
 	<div
 		class="h-full flex md:items-center md:justify-center items-end p-0 m-0"
