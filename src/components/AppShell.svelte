@@ -3,7 +3,6 @@
 	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
 	import { appState, type TAction } from '$/stores'
-	import { browser } from '$app/environment'
 	import { page } from '$app/stores'
 	import Fab from './Fab.svelte'
 
@@ -73,15 +72,6 @@
 	]
 
 	$: actions = $appState.actions.filter((item) => item !== 'spacer' && !item.noFab) as TAction[]
-
-	$: if (browser) {
-		if ($appState.drawerVisible) {
-			history.pushState('drawer', '', '#drawer')
-			window.addEventListener('popstate', () => ($appState.drawerVisible = false), { once: true })
-		} else if (history.state === 'drawer') {
-			history.back()
-		}
-	}
 </script>
 
 <div class="drawer drawer-mobile">
@@ -115,13 +105,13 @@
 			<Fab {actions} />
 		{/if}
 		<!-- Navbar -->
-		<div class="w-full navbar lg:hidden sticky top-0 z-30 bg-base-300">
+		<div class="w-full navbar lg:hidden sticky top-0 z-30 bg-base-300 gap-3">
 			<div class="flex-none lg:hidden">
 				<label for="my-drawer-3" class="btn btn-square btn-ghost">
-					<span class="i-mdi-menu text-xl" />
+					<span class="i-mdi-menu text-2xl" />
 				</label>
 			</div>
-			<div class="flex-1 px-2 mx-2">JustInvoice</div>
+			<a href="/app" class="uppercase font-black tracking-wide">JustInvoice</a>
 		</div>
 		<!-- Main -->
 		<div class="shrink-0">
@@ -130,8 +120,8 @@
 	</div>
 	<!-- Sidebar -->
 	<div class="drawer-side grid-rows-[1fr,auto]">
-		<label for="my-drawer-3" class="drawer-overlay" />
-		<ul class="menu lg:menu-compact p-4 overflow-y-auto w-80 bg-base-200 gap-3">
+		<label for="my-drawer-3" class="drawer-overlay backdrop-blur-sm" />
+		<ul class="menu lg:menu-compact p-4 overflow-y-auto w-80 bg-base-200 gap-3 shadow">
 			<!-- Sidebar content here -->
 			<h2 class="py-5 text-2xl uppercase font-black tracking-wide text-center">JustInvoice</h2>
 			<!-- <div class="divider" /> -->
