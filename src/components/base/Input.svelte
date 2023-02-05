@@ -34,7 +34,7 @@
 		class="uppercase font-semibold text-gray-400 tracking-wider text-xs cursor-pointer"
 		on:click={() => {
 			if (['checkbox', 'radio'].includes(type)) {
-				inputElement.checked = !inputElement.checked
+				inputElement.click()
 			}
 		}}>{label}</label
 	>
