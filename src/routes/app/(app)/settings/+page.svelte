@@ -29,6 +29,17 @@
 
 <div class="p-5 flex flex-col gap-5">
 	<Input
+		label="Offline Mode"
+		id="offline-mode"
+		type="checkbox"
+		checked={$userState.offlineMode}
+		on:change={(e) => {
+			$userState.offlineMode = e.currentTarget.checked
+			$userState = $userState
+		}}
+		name="offline-mode"
+	/>
+	<Input
 		label="Default Currency"
 		id="default-title"
 		type="text"

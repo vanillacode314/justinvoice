@@ -2,9 +2,13 @@
 	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
 	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
-	import { appState, type TAction } from '$/stores'
+	import { appState, userState, type TAction } from '$/stores'
+	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
+	import type { Writable } from 'svelte/store'
 	import Fab from './Fab.svelte'
+
+	const user = getContext<Writable<number>>('user')
 
 	interface ILink {
 		href: string
@@ -72,6 +76,8 @@
 	]
 
 	$: actions = $appState.actions.filter((item) => item !== 'spacer' && !item.noFab) as TAction[]
+
+	let logoutLoading: boolean = false
 </script>
 
 <div class="drawer drawer-mobile">
@@ -114,7 +120,7 @@
 			<a href="/app" class="uppercase font-black tracking-wide">JustInvoice</a>
 		</div>
 		<!-- Main -->
-		<div class="shrink-0">
+		<div class="shrink-0 grow">
 			<slot />
 		</div>
 	</div>
@@ -155,6 +161,29 @@
 				{/each}
 			{/each}
 			<span class="grow" />
+			{#if !$userState.offlineMode || $user}
+				<form
+					on:submit|preventDefault={async () => {
+						logoutLoading = true
+						await fetch('/api/logout').finally(() => (logoutLoading = false))
+						goto('/app/login')
+					}}
+					action="/api/logout"
+					class="contents"
+				>
+					<button class="btn btn-outline text-gray-50 flex items-center gap-3">
+						{#if logoutLoading}
+							<div class="animate-spin preserve-3d">
+								<span class="i-mdi:dots-circle" />
+							</div>
+							<span>Logging out</span>
+						{:else}
+							<span class="i-mdi:logout" />
+							<span>Logout</span>
+						{/if}
+					</button>
+				</form>
+			{/if}
 			<div class="text-center px-5 underline hover:text-primary transition-colors">
 				<a href="https://raqueebuddinaziz.com">Made By Raqueebuddin Aziz</a>
 			</div>

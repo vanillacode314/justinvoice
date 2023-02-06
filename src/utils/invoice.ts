@@ -1,8 +1,9 @@
-import { alert } from '$/modals/auto-import/AlertModal.svelte'
+import { alert } from '$/modals/AlertModal.svelte'
 import { userState, userStateSchema } from '$/stores'
 import {
 	invoiceItemLogSchema,
 	invoiceSchema,
+	resultSchema,
 	type TEntity,
 	type TInvoice,
 	type TInvoiceItemLog
@@ -10,38 +11,75 @@ import {
 import type { z } from 'zod'
 import { diffByKey } from '.'
 
-export function createInvoice(
+export async function createInvoice(
 	title: TInvoice['title'],
 	senderId: TEntity['id'],
 	recipientId: TEntity['id'],
 	currency: TInvoice['currency']
-): TInvoice {
-	let id: TInvoice['id'] = crypto.randomUUID()
-	const ids = get(userState).invoices.map(({ id }) => id)
-	while (ids.includes(id)) {
-		id = crypto.randomUUID()
+): Promise<Pick<TInvoice, 'id'>> {
+	const schema = invoiceSchema.pick({ id: true })
+	const { offlineMode } = get(userState)
+
+	if (offlineMode) {
+		let id: TInvoice['id'] = crypto.randomUUID()
+		const ids = get(userState).invoices.map(({ id }) => id)
+		while (ids.includes(id)) {
+			id = crypto.randomUUID()
+		}
+		const invoice: TInvoice = invoiceSchema.parse({
+			id,
+			title,
+			senderId,
+			recipientId,
+			currency
+		})
+		userState.update((val) => {
+			const { invoices } = val
+			invoices.push(invoice)
+			return val
+		})
+		return schema.parse(invoice)
+	} else {
+		const result = await fetch('/api/invoice', {
+			method: 'POST',
+			body: getFormData({
+				title,
+				senderId: +senderId,
+				recipientId: +recipientId,
+				currency
+			})
+		})
+			.catch((err) => {
+				throw new Error(err)
+			})
+			.then(async (res) => resultSchema(schema).parse(await res.json()))
+
+		if (!result.success) {
+			throw new Error(JSON.stringify(result.error))
+		}
+
+		return schema.parse(result.data)
 	}
-	const invoice: TInvoice = invoiceSchema.parse({
-		id,
-		title,
-		senderId,
-		recipientId,
-		currency
-	})
-	userState.update((val) => {
-		const { invoices } = val
-		invoices.push(invoice)
-		return val
-	})
-	return invoice
 }
 
-export function removeInvoice(id: TInvoice['id']) {
-	userState.update((val) => {
-		const { invoices } = val
-		removeInPlace(invoices, (invoice) => invoice.id === id)
-		return val
-	})
+export async function removeInvoice(id: TInvoice['id']) {
+	const { offlineMode } = get(userState)
+	if (offlineMode) {
+		userState.update((val) => {
+			const { invoices } = val
+			removeInPlace(invoices, (invoice) => invoice.id === id)
+			return val
+		})
+	} else {
+		const result = await fetch('/api/invoice', {
+			method: 'DELETE',
+			body: getFormData({
+				ids: [id]
+			})
+		}).catch((err) => {
+			throw new Error(err)
+		})
+	}
 }
 
 export const removeItems = (invoiceId: TInvoice['id'], ids: TInvoiceItemLog['id'][]) => {

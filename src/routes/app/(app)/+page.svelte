@@ -4,11 +4,11 @@
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
 	import { actionSchema, appState, userState } from '$/stores'
 	import type { TInvoice } from '$/types'
+	import { page } from '$app/stores'
 
 	let invoices: TInvoice[]
-
 	$: {
-		;({ invoices } = $userState)
+		invoices = $userState.offlineMode ? $userState.invoices : $page.data.data.invoices
 	}
 
 	onMount(() => {
@@ -47,9 +47,9 @@
 	})
 </script>
 
-<div class="p-5 min-h-full">
+<div class="p-5 min-h-full grid">
 	{#if invoices.length > 0}
-		<div class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+		<div class="grid content-start gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
 			{#each invoices as invoice (invoice.id)}
 				<div
 					animate:flip={{ duration: 300 }}

@@ -79,6 +79,7 @@
 			type="number"
 			name="cost"
 			min="0"
+			step="0.01"
 			placeholder="Type here"
 			required
 			bind:value={formData.cost}

@@ -74,3 +74,8 @@ export function removeInPlace<T>(
 	}
 	return array.splice(index, 1)[0]
 }
+export function getFormData(object: Record<string, any>) {
+	const formData = new FormData()
+	formData.append('value', JSON.stringify(object))
+	return formData
+}

@@ -8,6 +8,7 @@
 	import { appState } from '$/stores'
 	import { entitySchema, type TEntity } from '$/types'
 	import { addAddress } from '$/utils/address'
+	import { invalidateAll } from '$app/navigation'
 
 	let formData: TEntity = entitySchema.parse({})
 
@@ -16,9 +17,10 @@
 	}
 
 	/// METHODS ///
-	function onSubmit() {
+	async function onSubmit() {
 		const data = entitySchema.parse(formData)
-		const { id } = addAddress(data.name, data.address)
+		const { id } = await addAddress(data.name, data.address)
+		invalidateAll()
 		$appState.selectedAddressId = id
 		$appState.drawerVisible = false
 		$appState = $appState

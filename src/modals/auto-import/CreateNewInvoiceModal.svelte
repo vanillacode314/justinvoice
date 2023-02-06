@@ -9,19 +9,28 @@
 	import { toast } from '$/components/base/Toast.svelte'
 	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
 	import { appState, userState } from '$/stores'
-	import { invoiceSchema, type TInvoice } from '$/types'
+	import { invoiceSchema, type TEntity, type TInvoice } from '$/types'
+	import { goto } from '$app/navigation'
 
 	let formData: TInvoice = invoiceSchema.parse({})
+	let addressbook: TEntity[] = []
 
 	/// METHODS ///
-	function onOpen() {
-		formData = invoiceSchema.parse({
-			senderId: $userState.defaultSender,
-			currency: $userState.defaultCurrency
-		})
+	async function onOpen() {
+		addressbook = $userState.offlineMode
+			? $userState.addressbook
+			: await fetch('/api/entity')
+					.then((res) => res.json())
+					.then((data) => data.data)
+		if ($userState.offlineMode) {
+			formData = invoiceSchema.parse({
+				senderId: $userState.defaultSender,
+				currency: $userState.defaultCurrency
+			})
+		}
 	}
 
-	function onSubmit(e: SubmitEvent) {
+	async function onSubmit(e: SubmitEvent) {
 		const result = invoiceSchema.safeParse(formData)
 
 		if (!result.success) {
@@ -33,7 +42,8 @@
 		}
 
 		const data = result.data
-		createInvoice(data.title, data.senderId, data.recipientId, data.currency)
+		const { id } = await createInvoice(data.title, data.senderId, data.recipientId, data.currency)
+		await goto(`/app/invoice/${id}`)
 
 		$appState.drawerVisible = false
 	}
@@ -78,7 +88,7 @@
 				bind:value={formData.senderId}
 			>
 				<option value="" disabled selected>Pick an address</option>
-				{#each $userState.addressbook as { id, name } (id)}
+				{#each addressbook as { id, name } (id)}
 					<option value={id}>{name}</option>
 				{/each}
 			</Select>
@@ -99,7 +109,7 @@
 				bind:value={formData.recipientId}
 			>
 				<option value="" disabled selected>Pick an address</option>
-				{#each $userState.addressbook as { id, name } (id)}
+				{#each addressbook as { id, name } (id)}
 					<option value={id}>{name}</option>
 				{/each}
 			</Select>

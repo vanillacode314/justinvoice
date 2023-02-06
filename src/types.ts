@@ -30,7 +30,7 @@ export const invoiceSchema = z
 		currency: z.string().default('USD'),
 		senderId: z.string().default(''),
 		recipientId: z.string().default(''),
-		logs: z.array(invoiceItemLogSchema).default(() => [])
+		logs: invoiceItemLogSchema.array().default(Array)
 	})
 	.refine(
 		(val) => {
@@ -41,4 +41,22 @@ export const invoiceSchema = z
 			message: 'Sender and Recipient should not be the same'
 		}
 	)
+	.innerType()
 export type TInvoice = z.infer<typeof invoiceSchema>
+
+export function resultSchema<TData extends z.ZodTypeAny>(dataSchema: TData) {
+	return z.discriminatedUnion('success', [
+		z.object({
+			success: z.literal(true),
+			data: dataSchema
+		}),
+		z.object({
+			success: z.literal(false),
+			error: z.object({
+				code: z.string(),
+				message: z.any()
+			})
+		})
+	])
+}
+export type TResult<T> = z.infer<ReturnType<typeof resultSchema<z.ZodType<T>>>>

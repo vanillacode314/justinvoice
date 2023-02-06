@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { userState } from '$/stores'
 	import type { TInvoice } from '$/types'
+	import { page } from '$app/stores'
 
 	/// STATE ///
 	export let id: TInvoice['id']
@@ -9,9 +10,12 @@
 	export let senderId: TInvoice['senderId']
 	export let recipientId: TInvoice['recipientId']
 	export let paid: TInvoice['paid']
+	export let logs: TInvoice['logs']
+	export let currency: TInvoice['currency']
 
-	$: recipient = $userState.addressbook.find((address) => address.id == recipientId)
-	$: sender = $userState.addressbook.find((address) => address.id == senderId)
+	$: addressbook = $userState.offlineMode ? $userState.addressbook : $page.data.data.addressbook
+	$: recipient = addressbook.find((address) => address.id == recipientId)
+	$: sender = addressbook.find((address) => address.id == senderId)
 	$: dateString = new Date(dateOfIssue).toLocaleDateString()
 </script>
 

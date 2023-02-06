@@ -6,18 +6,19 @@
 		label: string
 		textarea?: boolean
 		group?: string | string[]
-		value: string | number
+		value?: string | number
+		type?: string
 	}
-
-	$: type = $$restProps.type
 
 	export let id: string
 	export let label: string = ''
 	export let textarea: boolean = false
+	export let type: string = 'text'
 	export let group: string | string[] = type === 'checkbox' ? [] : ''
-	export let value: string | number
+	export let value: string | number = ''
 
 	let inputElement!: HTMLInputElement
+	let showPassword: boolean = false
 </script>
 
 <div
@@ -33,8 +34,10 @@
 		for={id}
 		class="uppercase font-semibold text-gray-400 tracking-wider text-xs cursor-pointer"
 		on:click={() => {
-			if (['checkbox', 'radio'].includes(type)) {
+			if (type === 'radio') {
 				inputElement.click()
+			} else if (type === 'checkbox') {
+				$$restProps.checked = inputElement.checked
 			}
 		}}>{label}</label
 	>
@@ -56,6 +59,7 @@
 			on:change={(e) => {
 				if (e.currentTarget.checked) group = e.currentTarget.value
 			}}
+			on:change
 			class="radio"
 			{...$$restProps}
 		/>
@@ -65,23 +69,45 @@
 			{value}
 			bind:this={inputElement}
 			type="checkbox"
-			checked={group.includes(String(value))}
+			checked={$$restProps.checked}
 			on:change={(e) => {
 				if (!Array.isArray(group)) group = []
 
+				$$restProps.checked = e.currentTarget.checked
 				if (group.includes(e.currentTarget.value)) {
 					group.splice(group.indexOf(e.currentTarget.value), 1)
-					return
+				} else {
+					group.push(e.currentTarget.value)
 				}
-
-				group.push(e.currentTarget.value)
 			}}
+			on:change
 			class="checkbox"
 			{...$$restProps}
 		/>
+	{:else if type === 'password'}
+		<div class="relative">
+			<input
+				{value}
+				on:input={(e) => (value = e.currentTarget.value)}
+				type={showPassword ? 'text' : 'password'}
+				on:input
+				bind:this={inputElement}
+				{id}
+				class="input rounded-xl input-bordered w-full invalid:input-error"
+				{...$$restProps}
+			/>
+			<button
+				type="button"
+				on:click={() => (showPassword = !showPassword)}
+				class="absolute btn-circle btn-sm btn-ghost inset-y-1/2 -translate-y-1/2 right-3 text-lg grid place-content-center"
+			>
+				<span class:i-mdi-eye={!showPassword} class:i-mdi-eye-off={showPassword} />
+			</button>
+		</div>
 	{:else}
 		<input
 			{value}
+			{type}
 			on:input={(e) => {
 				if (type === 'number') {
 					value = +e.currentTarget.value
@@ -92,9 +118,7 @@
 			on:input
 			bind:this={inputElement}
 			{id}
-			class={textarea
-				? 'textarea textarea-bordered rounded-xl'
-				: 'input rounded-xl input-bordered w-full invalid:input-error'}
+			class="input rounded-xl input-bordered w-full invalid:input-error"
 			{...$$restProps}
 		/>
 	{/if}

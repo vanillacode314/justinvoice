@@ -1,27 +1,36 @@
 <script lang="ts">
 	import Item from '$/components/Item.svelte'
+	import { alert } from '$/modals/AlertModal.svelte'
 	import { addNewItemModalOpen } from '$/modals/auto-import/AddNewItemModal.svelte'
-	import { alert } from '$/modals/auto-import/AlertModal.svelte'
 	import { editInvoiceModalOpen } from '$/modals/auto-import/EditInvoiceModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { actionSchema, appState, userState } from '$/stores'
+	import type { TEntity, TInvoice } from '$/types'
 	import { exportToJsonFile } from '$/utils'
 	import { removeInvoice } from '$/utils/invoice'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import { onMount } from 'svelte'
+	import type { Writable } from 'svelte/store'
+
+	const loading = getContext<Writable<boolean>>('loading')
 
 	/// STATE ///
 	$: id = $page.params.id
-	$: invoice = $userState.invoices.find((i) => i.id === id)
+	$: invoices = (
+		$userState.offlineMode ? $userState.invoices : [$page.data.data.invoice]
+	) as TInvoice[]
+	$: addressbook = (
+		$userState.offlineMode ? $userState.addressbook : $page.data.data.addressbook
+	) as TEntity[]
+	$: invoice = invoices.find((i) => i.id === id)
 	$: $appState.selectedInvoiceId = id
 	let deleteInvoiceModalOpen: boolean = false
 	let deleteItemsModalOpen: boolean = false
 	let selectedItems: boolean[] = []
 
-	$: recipient = $userState.addressbook.find(({ id }) => id == invoice?.recipientId)
-	$: sender = $userState.addressbook.find(({ id }) => id == invoice?.senderId)
+	$: recipient = addressbook.find(({ id }) => id == invoice?.recipientId)
+	$: sender = addressbook.find(({ id }) => id == invoice?.senderId)
 
 	$: stats =
 		invoice && sender && recipient
@@ -40,8 +49,15 @@
 	}
 
 	async function deleteInvoice() {
-		await goto('/app')
-		removeInvoice(id)
+		$loading = true
+		if ($userState.offlineMode) {
+			await goto('/app')
+			await removeInvoice(id)
+		} else {
+			await removeInvoice(id)
+			await goto('/app')
+		}
+		$loading = false
 	}
 
 	function addItem() {
@@ -92,54 +108,56 @@
 	$: $appState.selectionMode = selectedItems.some((val) => val === true)
 	$: selectedItems.length = invoice ? invoice.logs.length : 0
 	$: $appState.actions = z.array(z.union([actionSchema, z.literal('spacer')])).parse(
-		$appState.selectionMode
-			? [
-					{
-						icon: 'i-mdi-trash',
-						label: 'Delete Items',
-						action: () => (deleteItemsModalOpen = true)
-					}
-			  ]
-			: [
-					{
-						icon: 'i-mdi-arrow-back',
-						label: 'Back',
-						noFab: true,
-						action: () => goto('/app')
-					},
-					'spacer',
-					{
-						icon: 'i-mdi-clipboard',
-						label: 'Copy ID',
-						action: () => navigator.clipboard.writeText(id)
-					},
-					{
-						icon: 'i-mdi-printer',
-						label: 'Print',
-						action: print
-					},
-					{
-						icon: 'i-mdi-export',
-						label: 'Export',
-						action: exportInvoice
-					},
-					{
-						icon: 'i-mdi-trash',
-						label: 'Delete',
-						action: () => (deleteInvoiceModalOpen = true)
-					},
-					{
-						icon: 'i-mdi-edit',
-						label: 'Edit',
-						action: editInvoice
-					},
-					{
-						icon: 'i-mdi-add',
-						label: 'Add Item',
-						color: 'btn-primary',
-						action: addItem
-					}
-			  ]
+		invoice && sender && recipient
+			? $appState.selectionMode
+				? [
+						{
+							icon: 'i-mdi-trash',
+							label: 'Delete Items',
+							action: () => (deleteItemsModalOpen = true)
+						}
+				  ]
+				: [
+						{
+							icon: 'i-mdi-arrow-back',
+							label: 'Back',
+							noFab: true,
+							action: () => goto('/app')
+						},
+						'spacer',
+						{
+							icon: 'i-mdi-clipboard',
+							label: 'Copy ID',
+							action: () => navigator.clipboard.writeText(id)
+						},
+						{
+							icon: 'i-mdi-printer',
+							label: 'Print',
+							action: print
+						},
+						{
+							icon: 'i-mdi-export',
+							label: 'Export',
+							action: exportInvoice
+						},
+						{
+							icon: 'i-mdi-trash',
+							label: 'Delete',
+							action: () => (deleteInvoiceModalOpen = true)
+						},
+						{
+							icon: 'i-mdi-edit',
+							label: 'Edit',
+							action: editInvoice
+						},
+						{
+							icon: 'i-mdi-add',
+							label: 'Add Item',
+							color: 'btn-primary',
+							action: addItem
+						}
+				  ]
+			: []
 	)
 
 	onDestroy(() => {
@@ -148,7 +166,7 @@
 	})
 </script>
 
-<div class="p-5 min-h-full">
+<div class="p-5 min-h-full flex flex-col">
 	{#if invoice}
 		<div
 			class="card w-full shadow-xl card-compact transition-colors"
@@ -184,22 +202,36 @@
 				</div>
 			</div>
 		</div>
-		<div class="grid gap-5 mt-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-			{#each invoice.logs as log, index (log.id)}
-				<div
-					animate:flip={{ duration: 300 }}
-					in:fade={{ duration: 150 }}
-					out:scale|local
-					class="grid"
+		{#if invoice.logs.length === 0}
+			<div class="flex flex-col gap-5 items-center justify-center p-10 grow">
+				<span class="i-mdi-file-document-multiple text-6xl" />
+				<h2 class="text-xl uppercase font-bold">No logs yet</h2>
+				<button
+					class="flex items-center gap-1 btn btn-success"
+					on:click={() => ($addNewItemModalOpen = true)}
 				>
-					<Item {...log} bind:selected={selectedItems[index]} />
-				</div>
-			{/each}
-		</div>
+					<span class="i-mdi-add text-lg" />
+					<span>Add New Log</span>
+				</button>
+			</div>
+		{:else}
+			<div class="grid gap-5 mt-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+				{#each invoice.logs as log, index (log.id)}
+					<div
+						animate:flip={{ duration: 300 }}
+						in:fade={{ duration: 150 }}
+						out:scale|local
+						class="grid"
+					>
+						<Item {...log} bind:selected={selectedItems[index]} />
+					</div>
+				{/each}
+			</div>
+		{/if}
 	{:else}
-		<div class="flex flex-col gap-5 items-center h-full justify-center">
-			<p class="text-xl font-bold">Invoice Not Found</p>
-			<a class="flex items-center gap-1 btn btn-success" href="/app">
+		<div class="flex flex-col gap-5 items-center justify-center grow">
+			<h2 class="text-xl uppercase font-bold">Invoice not found</h2>
+			<a class="flex items-center gap-1 btn btn-primary" href="/app">
 				<span class="i-mdi-arrow-back text-lg" />
 				<span>Go Back</span>
 			</a>

@@ -3,6 +3,7 @@
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { appState } from '$/stores'
 	import type { TEntity } from '$/types'
+	import { invalidateAll } from '$app/navigation'
 	import Selectable from './base/Selectable.svelte'
 
 	/// STATE ///
@@ -31,7 +32,10 @@
 				icon="i-mdi-warning"
 				title="Delete Address"
 				message="Are you sure you would like to delete this address? All invoices using the address will be removed."
-				on:confirm={() => removeAddresses([id])}
+				on:confirm={async () => {
+					await removeAddresses([id])
+					await invalidateAll()
+				}}
 			>
 				<button class="btn btn-ghost btn-sm text-error flex gap-1 items-center">
 					<span class="i-mdi-trash" />

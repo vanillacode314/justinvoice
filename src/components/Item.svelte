@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { alert } from '$/modals/auto-import/AlertModal.svelte'
+	import { alert } from '$/modals/AlertModal.svelte'
 	import { editItemModalOpen } from '$/modals/auto-import/EditItemModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { appState, userState } from '$/stores'
