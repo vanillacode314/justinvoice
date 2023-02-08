@@ -6,24 +6,24 @@
 	import { resultSchema } from '$/types'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import { createZodFetcher } from 'zod-fetch'
 	import type { PageData } from './$types'
 
 	let processingLogin: boolean = false
 	const { expired } = $page.data as PageData
-	const fetcher = createZodFetcher((input, init) => fetch(input, init).then((res) => res.json()))
+	const fetcher = createFetcher(fetch)
 
 	async function onSubmit(e: SubmitEvent) {
 		const form = e.currentTarget as HTMLFormElement
 		const formData = new FormData(form)
 		processingLogin = true
-		const result = await fetcher(resultSchema(z.object({ id: z.number() })), '/api/login', {
+		const result = await fetcher(resultSchema(z.object({ id: z.bigint() })), '/api/v1/login', {
 			method: 'POST',
 			body: buildFormData(Object.fromEntries(formData.entries()))
 		}).finally(() => (processingLogin = false))
 
 		if (result.success) {
-			await goto('/app')
+			processingLogin = true
+			await goto('/app').finally(() => (processingLogin = false))
 			return
 		}
 		toast(result.error.code, result.error.message, { type: 'error' })
@@ -42,7 +42,7 @@
 	<h1 class="uppercase font-black tracking-wide p-10 text-4xl md:text-6xl">JustInvoice</h1>
 	<span class="grow" />
 	<form
-		action="/api/register"
+		action="/api/v1/login"
 		method="POST"
 		on:submit|preventDefault={onSubmit}
 		class="md:max-w-xl w-full bg-stone-900 p-5 md:rounded-xl flex flex-col gap-5"

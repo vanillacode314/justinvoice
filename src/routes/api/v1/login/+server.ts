@@ -8,7 +8,7 @@ export const POST: RequestHandler = makeResultHandler(
 		email: z.string().email(),
 		password: z.string().min(8).max(64)
 	}),
-	z.object({ id: z.number() }),
+	z.object({ id: z.bigint() }),
 	async ({ send, data, cookies }) => {
 		const { email, password } = data
 		const user = await db.user.findUnique({

@@ -4,9 +4,8 @@
 	import { offlineMode } from '$/stores'
 	import { resultSchema } from '$/types'
 	import { goto } from '$app/navigation'
-	import { createZodFetcher } from 'zod-fetch'
 
-	const fetcher = createZodFetcher((input, init) => fetch(input, init).then((res) => res.json()))
+	const fetcher = createFetcher(fetch)
 
 	let processingRegister: boolean = false
 	async function onSubmit(e: SubmitEvent) {
@@ -14,14 +13,14 @@
 		const formData = new FormData(form)
 
 		processingRegister = true
-		const result = await fetcher(resultSchema(z.object({ id: z.number() })), '/api/register', {
+		const result = await fetcher(resultSchema(z.object({ id: z.bigint() })), '/api/v1/register', {
 			method: 'POST',
-			redirect: 'manual',
 			body: buildFormData(Object.fromEntries(formData.entries()))
 		}).finally(() => (processingRegister = false))
 
 		if (result.success) {
-			await goto('/app')
+			processingRegister = true
+			await goto('/app').finally(() => (processingRegister = false))
 			return
 		}
 
@@ -33,7 +32,7 @@
 	<h1 class="uppercase font-black tracking-wide p-10 text-4xl md:text-6xl">JustInvoice</h1>
 	<span class="grow" />
 	<form
-		action="/api/register"
+		action="/api/v1/register"
 		method="POST"
 		on:submit|preventDefault={onSubmit}
 		class="md:max-w-xl w-full bg-stone-900 p-5 md:rounded-xl flex flex-col gap-5"

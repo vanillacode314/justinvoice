@@ -188,10 +188,10 @@
 				<form
 					on:submit|preventDefault={async () => {
 						processingLogout = true
-						await fetch('/api/logout').finally(() => (processingLogout = false))
+						await fetch('/api/v1/logout').finally(() => (processingLogout = false))
 						await goto('/app/login')
 					}}
-					action="/api/logout"
+					action="/api/v1/logout"
 					class="contents"
 				>
 					<button class="btn btn-outline text-gray-50 flex items-center gap-3">
