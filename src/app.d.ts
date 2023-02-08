@@ -6,7 +6,12 @@
 // and what to do when importing types
 declare namespace App {
 	interface Locals {
-		user: number | null
+		user: bigint | null
+		offlineMode: boolean
+	}
+	interface PageData extends TResult<{ invoices: TInvoice[]; addressbook: TEntity[] }> {
+		user: bigint | null
+		expired: boolean
 	}
 	// interface Platform {}
 	// interface Session {}

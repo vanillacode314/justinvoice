@@ -1,8 +1,11 @@
+import * as devalue from 'devalue'
+import { createZodFetcher } from 'zod-fetch'
+
 export const add = (a: number, b: number) => a + b
 
 export function exportToJsonFile(jsonData: object, name = 'data.json') {
 	const dataUri =
-		'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(jsonData))
+		'data:application/json;charset=utf-8,' + encodeURIComponent(devalue.stringify(jsonData))
 
 	const a = document.createElement('a')
 	a.setAttribute('href', dataUri)
@@ -38,7 +41,7 @@ export function safeParseJson<T = any>(
 	input: string
 ): { success: true; data: T } | { success: false; error: unknown } {
 	try {
-		return { success: true, data: JSON.parse(input) }
+		return { success: true, data: devalue.parse(input) }
 	} catch (error) {
 		return { success: false, error }
 	}
@@ -74,8 +77,50 @@ export function removeInPlace<T>(
 	}
 	return array.splice(index, 1)[0]
 }
-export function getFormData(object: Record<string, any>) {
+
+export function buildFormData(object: Record<string, any>) {
 	const formData = new FormData()
-	formData.append('value', JSON.stringify(object))
+	formData.append('value', devalue.stringify(object))
 	return formData
+}
+
+export function buildQueryString(object: Record<string, any>) {
+	const query = new URLSearchParams()
+	query.set('value', devalue.stringify(object))
+	return query.toString()
+}
+
+export function getSelectedFromArray<T>(array: T[], boolean_array: boolean[]): T[] {
+	return array.filter((_, index) => boolean_array[index])
+}
+
+export function pullKeys<T extends Record<any, any> = any>(
+	obj: T,
+	keys: (keyof T)[]
+): [Pick<T, (typeof keys)[number]>, Omit<T, (typeof keys)[number]>] {
+	const result = Object.fromEntries(
+		keys.map((key) => [key, obj[key]]).filter(([, value]) => value !== undefined)
+	)
+	keys.forEach((key) => delete obj[key])
+	return [result, obj]
+}
+
+export const createFetcher = (
+	fetcher: (input: URL | RequestInfo, init?: RequestInit) => Promise<Response>
+) =>
+	createZodFetcher((input, init?) =>
+		fetcher(input, init)
+			.then((res) => res.text())
+			.then((value) => devalue.parse(value))
+			.catch((error) => {
+				throw new Error(error)
+			})
+	)
+
+export const genId: (ids: BigInt[]) => BigInt = (ids = []) => {
+	let id = BigInt(Math.floor(Math.random() * Math.pow(10, 16)))
+	while (ids.includes(id)) {
+		id = BigInt(Math.floor(Math.random() * Math.pow(10, 16)))
+	}
+	return id
 }

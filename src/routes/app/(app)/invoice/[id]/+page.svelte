@@ -6,31 +6,20 @@
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { actionSchema, appState, userState } from '$/stores'
-	import type { TEntity, TInvoice } from '$/types'
 	import { exportToJsonFile } from '$/utils'
-	import { removeInvoice } from '$/utils/invoice'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import type { Writable } from 'svelte/store'
-
-	const loading = getContext<Writable<boolean>>('loading')
 
 	/// STATE ///
-	$: id = $page.params.id
-	$: invoices = (
-		$userState.offlineMode ? $userState.invoices : [$page.data.data.invoice]
-	) as TInvoice[]
-	$: addressbook = (
-		$userState.offlineMode ? $userState.addressbook : $page.data.data.addressbook
-	) as TEntity[]
-	$: invoice = invoices.find((i) => i.id === id)
+	$: id = BigInt(+$page.params.id)
+	$: invoice = $userState.invoices.find((i) => i.id === id)
 	$: $appState.selectedInvoiceId = id
 	let deleteInvoiceModalOpen: boolean = false
 	let deleteItemsModalOpen: boolean = false
 	let selectedItems: boolean[] = []
 
-	$: recipient = addressbook.find(({ id }) => id == invoice?.recipientId)
-	$: sender = addressbook.find(({ id }) => id == invoice?.senderId)
+	$: recipient = $userState.addressbook.find(({ id }) => id == invoice?.recipientId)
+	$: sender = $userState.addressbook.find(({ id }) => id == invoice?.senderId)
 
 	$: stats =
 		invoice && sender && recipient
@@ -49,15 +38,8 @@
 	}
 
 	async function deleteInvoice() {
-		$loading = true
-		if ($userState.offlineMode) {
-			await goto('/app')
-			await removeInvoice(id)
-		} else {
-			await removeInvoice(id)
-			await goto('/app')
-		}
-		$loading = false
+		await removeInvoice(id)
+		await goto('/app')
 	}
 
 	function addItem() {
@@ -76,12 +58,15 @@
 			title: 'Export Invoice',
 			message: 'Enter filename (id will be auto appended to the name):',
 			initialValue: invoice.title
+				.toLowerCase()
+				.replace(/[^a-z0-9\s]/g, '')
+				.replace(/\s+/g, ' ')
+				.replace(/ /g, '_')
 		})
 		if (!name) return
-		const archived = $userState.archivedInvoices.some(({ id }) => id === invoice?.id)
 		exportToJsonFile(
 			{
-				[archived ? 'archivedInvoices' : 'invoices']: [invoice],
+				invoices: [invoice],
 				addressbook: uniqByKey([sender, recipient], 'id')
 			},
 			`${name}-${invoice.id}.json`
@@ -242,7 +227,7 @@
 	icon="i-mdi-warning"
 	title="Delete Invoice"
 	message="Are you sure you want to delete this invoice and all of it's data?"
-	on:confirm={deleteInvoice}
+	on:confirm={(e) => e.detail(deleteInvoice)}
 	bind:open={deleteInvoiceModalOpen}
 />
 
@@ -250,13 +235,15 @@
 	icon="i-mdi-warning"
 	title="Delete Selected Items"
 	message="Are you sure you want to delete all selected items?"
-	on:confirm={() => {
-		if (!invoice) return
-		removeItems(
-			id,
-			invoice.logs.filter((_log, index) => selectedItems[index] === true).map(({ id }) => id)
-		)
-		selectedItems.fill(false)
+	on:confirm={(e) => {
+		e.detail(async () => {
+			if (!invoice) return
+			await removeItems(
+				id,
+				getSelectedFromArray(invoice.logs, selectedItems).map(({ id }) => id)
+			)
+			selectedItems.fill(false)
+		})
 	}}
 	bind:open={deleteItemsModalOpen}
 />

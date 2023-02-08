@@ -16,6 +16,10 @@
 		$appState.selectedAddressId = id
 		$editAddressModalOpen = true
 	}
+
+	async function onRemove() {
+		await removeAddresses([id])
+	}
 </script>
 
 <Selectable bind:selected>
@@ -32,10 +36,7 @@
 				icon="i-mdi-warning"
 				title="Delete Address"
 				message="Are you sure you would like to delete this address? All invoices using the address will be removed."
-				on:confirm={async () => {
-					await removeAddresses([id])
-					await invalidateAll()
-				}}
+				on:confirm={(e) => e.detail(onRemove)}
 			>
 				<button class="btn btn-ghost btn-sm text-error flex gap-1 items-center">
 					<span class="i-mdi-trash" />

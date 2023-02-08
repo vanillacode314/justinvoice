@@ -3,12 +3,14 @@
 </script>
 
 <script lang="ts">
+	import Button from '$/components/base/Button.svelte'
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
 	import { appState, userState } from '$/stores'
-	import { invoiceItemLogSchema, type TInvoiceItemLog } from '$/types'
+	import { invoiceItemLogSchema } from '$/types'
 
 	let formData: TInvoiceItemLog = invoiceItemLogSchema.parse({})
+	let processingEdit: boolean = false
 
 	$: selectedInvoice = $userState.invoices.find(({ id }) => id === $appState.selectedInvoiceId)
 	$: selectedItem = selectedInvoice?.logs.find(({ id }) => id === $appState.selectedItemId)
@@ -18,11 +20,20 @@
 		formData = invoiceItemLogSchema.parse(selectedItem)
 	}
 
-	function onSubmit() {
-		if (selectedItem) {
+	async function onSubmit(e: SubmitEvent) {
+		e.preventDefault()
+		processingEdit = true
+		if ($appState.selectedInvoiceId && $appState.selectedItemId) {
 			const { qty, cost, type, title, description } = invoiceItemLogSchema.parse(formData)
-			Object.assign(selectedItem, { qty, cost, type, title, description })
-			$userState = $userState
+			await editLog(
+				$appState.selectedInvoiceId,
+				$appState.selectedItemId,
+				title,
+				type,
+				cost,
+				qty,
+				description
+			).finally(() => (processingEdit = false))
 		}
 		$editItemModalOpen = false
 		$appState.drawerVisible = false
@@ -95,10 +106,9 @@
 			<button type="button" class="btn btn-ghost" on:click={() => ($editItemModalOpen = false)}
 				>Cancel</button
 			>
-			<button class="btn btn-success flex gap-1 items-center">
-				<span class="i-mdi-floppy text-lg" />
+			<Button class="btn-primary" icon="i-mdi-floppy" processing={processingEdit}>
 				<span>Save</span>
-			</button>
+			</Button>
 		</div>
 	</form>
 </Modal>

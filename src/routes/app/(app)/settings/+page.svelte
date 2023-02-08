@@ -2,43 +2,37 @@
 	import Input from '$/components/base/Input.svelte'
 	import Select from '$/components/base/Select.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
-	import { userState, userStateSchema } from '$/stores'
-	import { entitySchema, invoiceSchema, type TEntity, type TInvoice } from '$/types'
+	import { offlineMode, settings, settingsSchema, userState } from '$/stores'
+	import { entitySchema, resultSchema } from '$/types'
 
-	/// STATE ///
-	import { onMount } from 'svelte'
-	let defaultSender: TEntity['id'] = entitySchema.parse({}).id
-	let defaultCurrency: TInvoice['currency'] = invoiceSchema.parse({}).currency
+	const fetcher = createFetcher(fetch)
 
-	/// METHODS ///
+	const result = settingsSchema.safeParse($settings)
+	let formData = result.success ? result.data : settingsSchema.parse({})
+
+	const optionsSchema = entitySchema.transform(({ name, id }) => ({
+		label: name,
+		value: String(id)
+	}))
+
 	function onChange() {
-		Object.assign($userState, { defaultSender, defaultCurrency })
-		$userState = $userState
+		Object.assign($settings, settingsSchema.parse(formData))
+		$settings = $settings
 	}
 
 	function clearData() {
-		$userState = userStateSchema.parse({})
+		$settings = settingsSchema.parse({})
 	}
 
-	/// LIFECYCLE HOOKS ///
-	onMount(() => {
-		defaultSender = $userState.defaultSender || ''
-		defaultCurrency = $userState.defaultCurrency || 'USD'
+	onMount(async () => {
+		if ($offlineMode) return
+		const result = await fetcher(resultSchema(entitySchema.array()), '/api/v1/private/entities')
+		if (!result.success) return
+		$userState.addressbook = result.data
 	})
 </script>
 
 <div class="p-5 flex flex-col gap-5">
-	<Input
-		label="Offline Mode"
-		id="offline-mode"
-		type="checkbox"
-		checked={$userState.offlineMode}
-		on:change={(e) => {
-			$userState.offlineMode = e.currentTarget.checked
-			$userState = $userState
-		}}
-		name="offline-mode"
-	/>
 	<Input
 		label="Default Currency"
 		id="default-title"
@@ -46,22 +40,28 @@
 		name="title"
 		placeholder="Type here"
 		required
-		bind:value={defaultCurrency}
+		bind:value={formData.defaultCurrency}
 		on:input={onChange}
 	/>
 	<Select
 		label="Default Sender"
+		options={[
+			{
+				label: 'Pick a sender',
+				value: '',
+				disabled: true
+			},
+			...optionsSchema.array().parse($userState.addressbook)
+		]}
 		required
 		id="invoice-sender"
 		name="sender"
-		bind:value={defaultSender}
-		on:change={onChange}
-	>
-		<option value="" selected disabled>Pick a sender</option>
-		{#each $userState.addressbook as { id, name } (id)}
-			<option value={id}>{name}</option>
-		{/each}
-	</Select>
+		value={formData.defaultSender ? String(formData.defaultSender) : ''}
+		on:change={(e) => {
+			formData.defaultSender = e.currentTarget.value ? +e.currentTarget.value : null
+			onChange()
+		}}
+	/>
 	<ConfirmModal
 		title="Delete all data?"
 		message="Are you sure you would like to delete all data?"

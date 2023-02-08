@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts">
-	import Modal from '$components/base/Modal.svelte'
+	import Modal from '$/components/base/Modal.svelte'
 
 	interface $$Slots {
 		default: {

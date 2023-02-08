@@ -3,23 +3,38 @@
 </script>
 
 <script lang="ts">
+	import Button from '$/components/base/Button.svelte'
+
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { appState } from '$/stores'
-	import { invoiceItemLogSchema, type TInvoiceItemLog } from '$/types'
-	import { addItem } from '$/utils/invoice'
+	import { invoiceItemLogSchema } from '$/types'
 
 	let formData: TInvoiceItemLog = invoiceItemLogSchema.parse({})
+	let processingCreation: boolean = false
 
 	function onOpen() {
 		formData = invoiceItemLogSchema.parse({})
 	}
 
-	function onSubmit() {
+	async function onSubmit(e: SubmitEvent) {
 		if (!$appState.selectedInvoiceId) return
-
-		const { title, type, cost, qty, description } = invoiceItemLogSchema.parse(formData)
-		addItem($appState.selectedInvoiceId, title, type, cost, qty, description)
+		e.preventDefault()
+		processingCreation = true
+		const result = invoiceItemLogSchema.safeParse(formData)
+		if (!result.success) {
+			for (const error of result.error.errors) {
+				toast('Invalid Data', error.message, { type: 'error', duration: 5000 })
+			}
+			processingCreation = false
+			return
+		}
+		const { title, type, cost, qty, description } = result.data
+		await addLog($appState.selectedInvoiceId, title, type, cost, qty, description).finally(
+			() => (processingCreation = false)
+		)
+		$addNewItemModalOpen = false
 	}
 </script>
 
@@ -88,10 +103,9 @@
 			<button type="button" class="btn btn-ghost" on:click={() => ($addNewItemModalOpen = false)}
 				>Cancel</button
 			>
-			<button class="btn btn-success flex gap-1 items-center">
-				<span class="i-mdi-add text-lg" />
+			<Button processing={processingCreation} class="btn-primary">
 				<span>Add</span>
-			</button>
+			</Button>
 		</div>
 	</form>
 </Modal>

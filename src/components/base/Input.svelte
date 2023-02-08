@@ -17,7 +17,7 @@
 	export let group: string | string[] = type === 'checkbox' ? [] : ''
 	export let value: string | number = ''
 
-	let inputElement!: HTMLInputElement
+	export let inputElement!: HTMLInputElement
 	let showPassword: boolean = false
 </script>
 

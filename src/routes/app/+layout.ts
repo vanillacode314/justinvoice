@@ -1,42 +1,47 @@
-import { userState } from '$/stores'
+import { offlineMode } from '$/stores'
 import { browser } from '$app/environment'
+import { goto } from '$app/navigation'
 import { redirect } from '@sveltejs/kit'
 import type { LayoutLoad } from './$types'
 
 const sessionSchema = z.object({
 	expired: z.boolean(),
-	user: z.number().nullable()
+	user: z.bigint().nullable()
 })
 
-export const load: LayoutLoad = async ({ url, fetch }) => {
+const AUTH_ROUTES = ['/register', '/login']
+export const load: LayoutLoad = async ({ depends, url, fetch }) => {
 	if (!browser) return
+	const fetcher = createFetcher(fetch)
 
-	if (get(userState).offlineMode) {
+	depends('offlineMode')
+	const $offlineMode = get(offlineMode)
+	const urlState = Boolean(url.searchParams.get('offlineMode'))
+	if (urlState !== $offlineMode) {
+		const _url = new URL(url)
+		$offlineMode
+			? _url.searchParams.set('offlineMode', 'true')
+			: _url.searchParams.delete('offlineMode')
+		await goto(_url)
+	}
+
+	const route = url.pathname.replace('/app', '')
+	if ($offlineMode) {
+		if (AUTH_ROUTES.includes(route)) {
+			throw redirect(303, '/app?offlineMode=true')
+		}
 		return { user: null, expired: false }
 	}
 
-	const { user, expired } = sessionSchema.parse(
-		await fetch('/api/check-session').then((res) => res.json())
-	)
-	const loggedIn = user !== null
-
-	const route = url.pathname.replace('/app', '')
-	switch (route) {
-		case '/register':
-			if (loggedIn) {
-				throw redirect(303, '/app')
-			}
-			break
-		case '/login':
-			if (loggedIn) {
-				throw redirect(303, '/app')
-			}
-			break
-		default:
-			if (!loggedIn) {
-				throw redirect(303, '/app/login' + (expired ? '?expired=true' : ''))
-			}
-			break
+	const { user, expired } = await fetcher(sessionSchema, '/api/v1/check-session')
+	if (user === null) {
+		if (!AUTH_ROUTES.includes(route)) {
+			throw redirect(303, '/app/login')
+		}
+	} else {
+		if (AUTH_ROUTES.includes(route)) {
+			throw redirect(303, '/app' + url.search)
+		}
 	}
 
 	return { user, expired }

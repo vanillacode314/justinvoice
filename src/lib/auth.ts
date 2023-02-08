@@ -1,15 +1,11 @@
-import { db } from '$/db'
-import z from 'zod'
+import { db } from '$/lib/db'
+import type { sessionSchema } from '$/types'
+import type z from 'zod'
 
 const MONTH_IN_MILLIS = 1000 * 60 * 60 * 24 * 30
 const EXPIRATION_DURATION_MILLIS = MONTH_IN_MILLIS
 
-export const sessionSchema = z.object({
-	expired: z.boolean(),
-	user: z.number().nullable()
-})
-
-export async function checkAuth(sessionId?: string): Promise<z.infer<typeof sessionSchema>> {
+export async function checkSession(sessionId?: string): Promise<z.infer<typeof sessionSchema>> {
 	if (!sessionId) {
 		return {
 			expired: false,

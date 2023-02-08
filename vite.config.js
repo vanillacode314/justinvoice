@@ -24,7 +24,7 @@ const config = {
 					clsx: ['clsx']
 				}
 			],
-			dirs: ['./src/utils/'],
+			dirs: ['./src/lib/', './src/utils/'],
 			dts: 'src/auto-imports.d.ts'
 		}),
 		Unocss({

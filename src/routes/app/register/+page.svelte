@@ -1,9 +1,12 @@
 <script lang="ts">
 	import Input from '$/components/base/Input.svelte'
 	import { toast } from '$/components/base/Toast.svelte'
-	import { userState } from '$/stores'
+	import { offlineMode } from '$/stores'
 	import { resultSchema } from '$/types'
 	import { goto } from '$app/navigation'
+	import { createZodFetcher } from 'zod-fetch'
+
+	const fetcher = createZodFetcher((input, init) => fetch(input, init).then((res) => res.json()))
 
 	let processingRegister: boolean = false
 	async function onSubmit(e: SubmitEvent) {
@@ -11,23 +14,18 @@
 		const formData = new FormData(form)
 
 		processingRegister = true
-		const res = await fetch('/api/register', {
+		const result = await fetcher(resultSchema(z.object({ id: z.number() })), '/api/register', {
 			method: 'POST',
 			redirect: 'manual',
-			body: getFormData(Object.fromEntries(formData.entries()))
+			body: buildFormData(Object.fromEntries(formData.entries()))
 		}).finally(() => (processingRegister = false))
 
-		const result = resultSchema(z.object({ id: z.number() })).parse(await res.json())
-		if (res.ok) {
+		if (result.success) {
 			await goto('/app')
-		} else {
-			if (300 <= res.status && res.status < 500) {
-				if (result.success) return
-				if (result.error.code === 'EMAIL_ALREADY_EXISTS') {
-					toast('Email already in use', 'This email is already in use.', { type: 'error' })
-				}
-			}
+			return
 		}
+
+		toast(result.error.code, result.error.message, { type: 'error' })
 	}
 </script>
 
@@ -55,14 +53,7 @@
 			required
 		/>
 		<div class="flex justify-end gap-5 flex-wrap mt-5">
-			<a
-				href="/app"
-				on:click={() => {
-					$userState.offlineMode = true
-					$userState = $userState
-				}}
-				class="btn btn-ghost">Offline Mode</a
-			>
+			<a href="/app" on:click={() => ($offlineMode = true)} class="btn btn-ghost">Offline Mode</a>
 			<a href="/app/login" class="btn btn-ghost">Already a User?</a>
 			<button type="submit" class="btn btn-primary flex gap-1 items-center">
 				{#if processingRegister}

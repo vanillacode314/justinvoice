@@ -2,13 +2,32 @@
 	import Input from '$/components/base/Input.svelte'
 	import { toast } from '$/components/base/Toast.svelte'
 	import { alert } from '$/modals/AlertModal.svelte'
-	import { userState } from '$/stores'
+	import { offlineMode } from '$/stores'
 	import { resultSchema } from '$/types'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
+	import { createZodFetcher } from 'zod-fetch'
+	import type { PageData } from './$types'
 
 	let processingLogin: boolean = false
-	const expired = $page.url.searchParams.get('expired')
+	const { expired } = $page.data as PageData
+	const fetcher = createZodFetcher((input, init) => fetch(input, init).then((res) => res.json()))
+
+	async function onSubmit(e: SubmitEvent) {
+		const form = e.currentTarget as HTMLFormElement
+		const formData = new FormData(form)
+		processingLogin = true
+		const result = await fetcher(resultSchema(z.object({ id: z.number() })), '/api/login', {
+			method: 'POST',
+			body: buildFormData(Object.fromEntries(formData.entries()))
+		}).finally(() => (processingLogin = false))
+
+		if (result.success) {
+			await goto('/app')
+			return
+		}
+		toast(result.error.code, result.error.message, { type: 'error' })
+	}
 
 	onMount(async () => {
 		if (!expired) return
@@ -16,36 +35,7 @@
 			title: 'Session Expired',
 			message: 'Please log in again'
 		})
-		await goto('/app/login')
 	})
-
-	async function onSubmit(e: SubmitEvent) {
-		const form = e.currentTarget as HTMLFormElement
-		const formData = new FormData(form)
-		processingLogin = true
-		const res = await fetch('/api/login', {
-			method: 'POST',
-			body: getFormData(Object.fromEntries(formData.entries()))
-		})
-
-		const result = resultSchema(z.object({ id: z.number() })).parse(await res.json())
-		if (res.ok) {
-			await goto('/app')
-		} else {
-			if (300 <= res.status && res.status < 500) {
-				if (result.success) return
-				if (result.error.code === 'INCORRECT_PASSWORD') {
-					toast('Incorrect password', 'Please try again.', { type: 'error' })
-				}
-				if (result.error.code === 'USER_NOT_FOUND') {
-					toast('Incorrect email', 'User with that email address does not exist.', {
-						type: 'error'
-					})
-				}
-			}
-		}
-		processingLogin = false
-	}
 </script>
 
 <div class="flex flex-col items-center h-full md:p-10 gap-5">
@@ -72,14 +62,7 @@
 			required
 		/>
 		<div class="flex justify-end gap-5 flex-wrap mt-5">
-			<a
-				href="/app"
-				on:click={() => {
-					$userState.offlineMode = true
-					$userState = $userState
-				}}
-				class="btn btn-ghost">Offline Mode</a
-			>
+			<a href="/app" on:click={() => ($offlineMode = true)} class="btn btn-ghost">Offline Mode</a>
 			<a href="/app/register" class="btn btn-ghost">New User? Register</a>
 			<button type="submit" class="btn btn-primary flex gap-1 items-center">
 				{#if processingLogin}

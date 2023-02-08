@@ -3,57 +3,64 @@
 </script>
 
 <script lang="ts">
+	import Button from '$/components/base/Button.svelte'
+
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
 	import Select from '$/components/base/Select.svelte'
 	import { toast } from '$/components/base/Toast.svelte'
-	import { appState, userState } from '$/stores'
-	import { invoiceSchema, type TInvoice } from '$/types'
+	import { appState, offlineMode, userState } from '$/stores'
+	import { entitySchema, invoiceSchema, resultSchema } from '$/types'
 	import { addNewAddressModalOpen } from './AddNewAddressModal.svelte'
 
 	let formData: TInvoice = invoiceSchema.parse({})
+	let processingEdit: boolean = false
+	const fetcher = createFetcher(fetch)
 
 	$: selectedInvoice = $userState.invoices.find(({ id }) => id === $appState.selectedInvoiceId)
 
-	function onOpen() {
+	async function onOpen() {
 		if (!selectedInvoice) return
 		formData = invoiceSchema.parse(selectedInvoice)
+		if ($offlineMode) return
+		const result = await fetcher(resultSchema(entitySchema.array()), '/api/v1/private/entities')
+		if (result.success) $userState.addressbook = result.data
 	}
 
-	function onSubmit(e: SubmitEvent) {
-		console.log('SUBMIT')
-		if (selectedInvoice) {
+	async function onSubmit(e: SubmitEvent) {
+		e.preventDefault()
+		processingEdit = true
+		if ($appState.selectedInvoiceId) {
 			const result = invoiceSchema.safeParse(formData)
 			if (!result.success) {
 				for (const error of result.error.errors) {
 					toast('Invalid Data', error.message, { type: 'error', duration: 5000 })
 				}
-				e.preventDefault()
 				return
 			}
 			const { title, currency, senderId, recipientId } = result.data
-			Object.assign(selectedInvoice, { title, currency, senderId, recipientId })
-			$userState = $userState
+			await editInvoice(
+				$appState.selectedInvoiceId,
+				title,
+				senderId,
+				recipientId,
+				currency
+			).finally(() => (processingEdit = false))
 		}
 		$editInvoiceModalOpen = false
 		$appState.drawerVisible = false
 	}
 
-	async function newAddress(): Promise<string> {
+	async function newAddress(): Promise<number> {
 		$addNewAddressModalOpen = true
-		let firstRun: boolean = true
-		return new Promise((resolve) => {
-			let unsub: () => void
-			unsub = appState.subscribe(({ selectedAddressId }) => {
-				if (firstRun) {
-					firstRun = false
-					return
-				}
-				unsub()
-				const address = $userState.addressbook.find(({ id }) => id === selectedAddressId)
-				if (!address) return
-				resolve(selectedAddressId!)
-			})
+		return new Promise(async (resolve) => {
+			const { selectedAddressId } = await getNextValue(
+				appState,
+				({ selectedAddressId }) => selectedAddressId
+			)
+			const address = $userState.addressbook.find(({ id }) => id === selectedAddressId)
+			if (!address) return
+			resolve(selectedAddressId!)
 		})
 	}
 </script>
@@ -76,13 +83,15 @@
 				id="invoice-sender"
 				name="sender"
 				label="Sender's Address"
-				bind:value={formData.senderId}
-			>
-				<option value="" disabled selected>Pick an address</option>
-				{#each $userState.addressbook as { id, name } (id)}
-					<option value={id}>{name}</option>
-				{/each}
-			</Select>
+				value={String(formData.senderId)}
+				on:change={(e) => {
+					formData.senderId = e.currentTarget.value ? +e.currentTarget.value : -1
+				}}
+				options={[
+					{ value: '-1', label: 'Pick a sender', disabled: true, selected: true },
+					...$userState.addressbook.map(({ id, name }) => ({ value: String(id), label: name }))
+				]}
+			/>
 			<button
 				type="button"
 				class="btn"
@@ -97,13 +106,15 @@
 				required
 				name="recipient"
 				id="invoice-recipient"
-				bind:value={formData.recipientId}
-			>
-				<option value="" disabled selected>Pick an address</option>
-				{#each $userState.addressbook as { id, name } (id)}
-					<option value={id}>{name}</option>
-				{/each}
-			</Select>
+				value={String(formData.recipientId)}
+				on:change={(e) => {
+					formData.recipientId = e.currentTarget.value ? +e.currentTarget.value : -1
+				}}
+				options={[
+					{ value: '-1', label: 'Pick a recipient', disabled: true, selected: true },
+					...$userState.addressbook.map(({ id, name }) => ({ value: String(id), label: name }))
+				]}
+			/>
 			<button
 				type="button"
 				class="btn"
@@ -123,10 +134,7 @@
 			<button type="button" on:click={() => ($editInvoiceModalOpen = false)} class="btn btn-ghost"
 				>Cancel</button
 			>
-			<button class="flex gap-1 items-center btn btn-success">
-				<span class="i-mdi-floppy text-lg" />
-				<span>Save</span>
-			</button>
+			<Button icon="i-mdi-floppy" class="btn-primary" processing={processingEdit}>Save</Button>
 		</div>
 	</form>
 </Modal>

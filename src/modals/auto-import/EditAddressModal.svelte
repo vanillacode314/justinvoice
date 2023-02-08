@@ -3,12 +3,14 @@
 </script>
 
 <script lang="ts">
+	import Button from '$/components/base/Button.svelte'
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
 	import { appState, userState } from '$/stores'
-	import { entitySchema, type TEntity } from '$/types'
+	import { entitySchema } from '$/types'
 
 	let formData: TEntity = entitySchema.parse({})
+	let processingEdit: boolean = false
 
 	$: selectedAddress = $userState.addressbook.find(({ id }) => id === $appState.selectedAddressId)
 
@@ -17,12 +19,14 @@
 		formData = entitySchema.parse(selectedAddress)
 	}
 
-	function onSubmit() {
-		if (selectedAddress) {
+	async function onSubmit(e: SubmitEvent) {
+		e.preventDefault()
+		processingEdit = true
+		if ($appState.selectedAddressId) {
 			const { name, address } = entitySchema.parse(formData)
-			selectedAddress.name = name
-			selectedAddress.address = address
-			$userState = $userState
+			await editAddress($appState.selectedAddressId, name, address).finally(
+				() => (processingEdit = false)
+			)
 		}
 		$editAddressModalOpen = false
 		$appState.drawerVisible = false
@@ -54,10 +58,7 @@
 			<button type="button" class="btn btn-ghost" on:click={() => ($editAddressModalOpen = false)}
 				>Cancel</button
 			>
-			<button class="flex gap-1 items-center btn btn-success">
-				<span class="i-mdi-floppy text-lg" />
-				<span>Save</span>
-			</button>
+			<Button class="btn-primary" processing={processingEdit} icon="i-mdi-floppy">Save</Button>
 		</div>
 	</form>
 </Modal>

@@ -25,12 +25,14 @@
 
 <script lang="ts">
 	import Input from '$/components/base/Input.svelte'
+	import Modal from '$/components/base/Modal.svelte'
 
-	import Modal from '$components/base/Modal.svelte'
+	let inputElement!: HTMLInputElement
 </script>
 
 <Modal
 	bind:open={$open}
+	on:open={() => tick().then(() => inputElement.setSelectionRange(0, inputElement.value.length))}
 	on:close={() => {
 		if (!resolve) return
 
@@ -57,7 +59,7 @@
 				</span>
 			{/if}
 		</h3>
-		<Input id="prompt" label={$message} bind:value={$input} />
+		<Input id="prompt" label={$message} bind:value={$input} bind:inputElement />
 		<div class="modal-action">
 			<button type="submit" class="btn btn-primary flex gap-1 items-center">
 				<span class="i-mdi-check text-lg" />

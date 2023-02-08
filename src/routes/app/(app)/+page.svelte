@@ -2,21 +2,21 @@
 	import Invoice from '$/components/Invoice.svelte'
 	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
-	import { actionSchema, appState, userState } from '$/stores'
-	import type { TInvoice } from '$/types'
-	import { page } from '$app/stores'
+	import { actionSchema, appState, loadingMessage, userState } from '$/stores'
+	import type { Writable } from 'svelte/store'
 
-	let invoices: TInvoice[]
-	$: {
-		invoices = $userState.offlineMode ? $userState.invoices : $page.data.data.invoices
-	}
+	const loading = getContext<Writable<boolean>>('loading')
 
 	onMount(() => {
 		$appState.actions = z.array(actionSchema).parse([
 			{
 				icon: 'i-mdi-import',
 				label: 'Import Invoice(s)',
-				action: importInvoices
+				action: () => {
+					$loadingMessage = 'Importing'
+					$loading = true
+					importInvoices().finally(() => ($loading = false))
+				}
 			},
 			{
 				icon: 'i-mdi-export',
@@ -48,9 +48,9 @@
 </script>
 
 <div class="p-5 min-h-full grid">
-	{#if invoices.length > 0}
+	{#if $userState.invoices.length > 0}
 		<div class="grid content-start gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-			{#each invoices as invoice (invoice.id)}
+			{#each $userState.invoices as invoice (invoice.id)}
 				<div
 					animate:flip={{ duration: 300 }}
 					in:fade={{ duration: 150 }}

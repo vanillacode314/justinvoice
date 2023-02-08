@@ -8,61 +8,70 @@
 	import Select from '$/components/base/Select.svelte'
 	import { toast } from '$/components/base/Toast.svelte'
 	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
-	import { appState, userState } from '$/stores'
-	import { invoiceSchema, type TEntity, type TInvoice } from '$/types'
+	import { appState, offlineMode, settings, userState } from '$/stores'
+	import { entitySchema, invoiceSchema, resultSchema } from '$/types'
 	import { goto } from '$app/navigation'
+	import type z from 'zod'
 
-	let formData: TInvoice = invoiceSchema.parse({})
-	let addressbook: TEntity[] = []
+	const fetcher = createFetcher(fetch)
+
+	const formSchema = invoiceSchema.omit({ id: true, dateOfIssue: true, logs: true }).refine(
+		(invoice) => {
+			if (invoice.senderId === -1n || invoice.recipientId === -1n) return true
+			return invoice.senderId !== invoice.recipientId
+		},
+		{
+			message: 'Sender and Recipient should not be the same'
+		}
+	)
+	let formData: z.infer<typeof formSchema> = formSchema.parse({})
+	let processingCreation: boolean = false
 
 	/// METHODS ///
 	async function onOpen() {
-		addressbook = $userState.offlineMode
-			? $userState.addressbook
-			: await fetch('/api/entity')
-					.then((res) => res.json())
-					.then((data) => data.data)
-		if ($userState.offlineMode) {
-			formData = invoiceSchema.parse({
-				senderId: $userState.defaultSender,
-				currency: $userState.defaultCurrency
-			})
-		}
+		formData = formSchema.parse({
+			senderId: $settings.defaultSender,
+			currency: $settings.defaultCurrency
+		})
+		if ($offlineMode) return
+		const result = await fetcher(resultSchema(entitySchema.array()), '/api/v1/private/entities')
+		if (result.success) $userState.addressbook = result.data
 	}
 
 	async function onSubmit(e: SubmitEvent) {
-		const result = invoiceSchema.safeParse(formData)
+		e.preventDefault()
+		processingCreation = true
+		const result = formSchema.safeParse(formData)
 
 		if (!result.success) {
 			for (const error of result.error.errors) {
 				toast('Invalid Data', error.message, { type: 'error', duration: 5000 })
 			}
-			e.preventDefault()
+			processingCreation = false
 			return
 		}
 
 		const data = result.data
-		const { id } = await createInvoice(data.title, data.senderId, data.recipientId, data.currency)
-		await goto(`/app/invoice/${id}`)
-
-		$appState.drawerVisible = false
+		try {
+			const { id } = await createInvoice(data.title, data.senderId, data.recipientId, data.currency)
+			$appState.drawerVisible = false
+			$createNewInvoiceModalOpen = false
+			await goto(`/app/invoice/${id}`)
+		} finally {
+			processingCreation = false
+		}
 	}
 
-	async function newAddress(): Promise<string> {
+	async function newAddress(): Promise<number> {
 		$addNewAddressModalOpen = true
-		let firstRun: boolean = true
-		return new Promise((resolve) => {
-			let unsub: () => void
-			unsub = appState.subscribe(({ selectedAddressId }) => {
-				if (firstRun) {
-					firstRun = false
-					return
-				}
-				unsub()
-				const address = $userState.addressbook.find(({ id }) => id === selectedAddressId)
-				if (!address) return
-				resolve(selectedAddressId!)
-			})
+		return new Promise(async (resolve) => {
+			const { selectedAddressId } = await getNextValue(
+				appState,
+				({ selectedAddressId }) => selectedAddressId
+			)
+			const address = $userState.addressbook.find(({ id }) => id === selectedAddressId)
+			if (!address) return
+			resolve(selectedAddressId!)
 		})
 	}
 </script>
@@ -85,13 +94,15 @@
 				id="invoice-sender"
 				name="sender"
 				label="Sender's Address"
-				bind:value={formData.senderId}
-			>
-				<option value="" disabled selected>Pick an address</option>
-				{#each addressbook as { id, name } (id)}
-					<option value={id}>{name}</option>
-				{/each}
-			</Select>
+				value={String(formData.senderId)}
+				on:change={(e) => {
+					formData.senderId = e.currentTarget.value ? +e.currentTarget.value : -1
+				}}
+				options={[
+					{ value: '-1', label: 'Pick a sender', disabled: true, selected: true },
+					...$userState.addressbook.map(({ id, name }) => ({ value: String(id), label: name }))
+				]}
+			/>
 			<button
 				type="button"
 				class="btn"
@@ -106,13 +117,15 @@
 				required
 				name="recipient"
 				id="invoice-recipient"
-				bind:value={formData.recipientId}
-			>
-				<option value="" disabled selected>Pick an address</option>
-				{#each addressbook as { id, name } (id)}
-					<option value={id}>{name}</option>
-				{/each}
-			</Select>
+				value={String(formData.recipientId)}
+				on:change={(e) => {
+					formData.recipientId = e.currentTarget.value ? +e.currentTarget.value : -1
+				}}
+				options={[
+					{ value: '-1', label: 'Pick a recipient', disabled: true, selected: true },
+					...$userState.addressbook.map(({ id, name }) => ({ value: String(id), label: name }))
+				]}
+			/>
 			<button
 				type="button"
 				class="btn"
@@ -135,8 +148,15 @@
 				class="btn btn-ghost">Cancel</button
 			>
 			<button class="flex gap-1 items-center btn btn-success">
-				<span class="i-mdi-add text-lg" />
-				<span>Create</span>
+				{#if processingCreation}
+					<div class="animate-spin preserve-3d">
+						<span class="i-mdi:dots-circle" />
+					</div>
+					<span>Working on it</span>
+				{:else}
+					<span class="i-mdi-add text-lg" />
+					<span>Create</span>
+				{/if}
 			</button>
 		</div>
 	</form>

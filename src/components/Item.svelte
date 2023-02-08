@@ -3,7 +3,6 @@
 	import { editItemModalOpen } from '$/modals/auto-import/EditItemModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { appState, userState } from '$/stores'
-	import type { TInvoiceItemLog } from '$/types'
 	import Selectable from './base/Selectable.svelte'
 
 	/// STATE ///
@@ -60,9 +59,11 @@
 				<ConfirmModal
 					title="Delete Invoice Item"
 					message="Are you sure you want to delete this invoice item?"
-					on:confirm={() => {
-						if (!$appState.selectedInvoiceId) return
-						removeItems($appState.selectedInvoiceId, [id])
+					on:confirm={(e) => {
+						e.detail(async () => {
+							if (!$appState.selectedInvoiceId) return
+							await removeLogs($appState.selectedInvoiceId, [id])
+						})
 					}}
 				>
 					<button class="btn btn-ghost text-red-400 btn-sm">Remove</button>
