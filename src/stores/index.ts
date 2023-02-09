@@ -34,8 +34,11 @@ export type TSettings = z.infer<typeof settingsSchema>
 export const settings = persisted<TSettings>('settings-v1', settingsSchema.parse({}), {
 	serializer: {
 		parse(value) {
-			const result = settingsSchema.safeParse(devalue.parse(value))
-			return result.success ? result.data : settingsSchema.parse({})
+			try {
+				return settingsSchema.parse(devalue.parse(value))
+			} catch {
+				return settingsSchema.parse({})
+			}
 		},
 		stringify(object) {
 			return devalue.stringify(settingsSchema.parse(object))
@@ -70,7 +73,11 @@ function userStateStore() {
 	const localUserState = persisted<TUserState>('user-state-v2', userStateSchema.parse({}), {
 		serializer: {
 			parse(value) {
-				return userStateSchema.parse(devalue.parse(value))
+				try {
+					return userStateSchema.parse(devalue.parse(value))
+				} catch {
+					return userStateSchema.parse({})
+				}
 			},
 			stringify(object) {
 				return devalue.stringify(userStateSchema.parse(object))
