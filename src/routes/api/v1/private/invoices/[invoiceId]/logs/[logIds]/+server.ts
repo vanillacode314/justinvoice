@@ -1,7 +1,7 @@
 import { invoiceItemLogSchema } from '$/types'
 
 const getIds = (params: Partial<Record<string, string>>) =>
-	params.logIds?.split(',').map(Number) || []
+	params.logIds?.split(',').map(BigInt) || []
 
 export const GET = makeResultHandler(
 	'GET',

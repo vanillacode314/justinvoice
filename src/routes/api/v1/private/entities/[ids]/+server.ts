@@ -2,7 +2,7 @@ import { db } from '$/lib/db'
 import { entitySchema } from '$/types'
 import z from 'zod'
 
-const getIds = (params: Partial<Record<string, string>>) => params.ids?.split(',').map(Number) || []
+const getIds = (params: Partial<Record<string, string>>) => params.ids?.split(',').map(BigInt) || []
 
 export const PUT = makeResultHandler(
 	'PUT',
@@ -16,10 +16,9 @@ export const PUT = makeResultHandler(
 			db.entity.update({
 				data: {
 					name,
-					address,
-					userId: user
+					address
 				},
-				where: { id }
+				where: { id, userId: user }
 			})
 		)
 
