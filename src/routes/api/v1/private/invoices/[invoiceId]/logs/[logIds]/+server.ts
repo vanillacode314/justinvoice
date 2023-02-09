@@ -32,8 +32,9 @@ export const PUT = makeResultHandler(
 	invoiceItemLogSchema.extend({ cost: dbDecimalSchema }),
 	async ({ send, data, params, locals }) => {
 		const user = locals.user!
-		const invoiceId = +params.invoiceId!
-		const id = +params.logIds!
+		const invoiceId = BigInt(params.invoiceId!)
+		const id = BigInt(params.logIds!)
+		console.log(id, invoiceId, user)
 		const result = await handleTransaction(() =>
 			db.log.update({
 				data: data,
@@ -50,7 +51,7 @@ export const DELETE = makeResultHandler(
 	z.object({ count: z.number() }),
 	async ({ send, locals, params }) => {
 		const user = locals.user!
-		const invoiceId = +params.invoiceId!
+		const invoiceId = BigInt(params.invoiceId!)
 		const ids = getIds(params)
 		const result = await handleTransaction(() =>
 			db.log.deleteMany({

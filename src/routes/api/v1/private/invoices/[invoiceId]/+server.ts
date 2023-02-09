@@ -64,7 +64,7 @@ export const PUT = makeResultHandler(
 		logs: invoiceItemLogSchema.extend({ cost: dbDecimalSchema }).array().default(Array)
 	}),
 	async ({ send, data, params, locals }) => {
-		const id = +params.invoiceId!
+		const id = BigInt(params.invoiceId!)
 		const user = locals.user!
 		const result = await handleTransaction(() =>
 			db.invoice.update({

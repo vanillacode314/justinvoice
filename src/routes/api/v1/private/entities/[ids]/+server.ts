@@ -10,7 +10,7 @@ export const PUT = makeResultHandler(
 	entitySchema,
 	async ({ locals, params, send, data }) => {
 		const user = locals.user!
-		const id = +params.ids!
+		const id = BigInt(params.ids!)
 		const result = await handleTransaction(() =>
 			db.entity.update({
 				data: data,
