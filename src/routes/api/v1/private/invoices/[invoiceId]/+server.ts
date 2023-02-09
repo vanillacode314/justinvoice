@@ -49,16 +49,15 @@ export const GET: RequestHandler = makeResultHandler(
 export const PUT = makeResultHandler(
 	'PUT',
 	invoiceSchema
-		.omit({ logs: true, id: true })
-		.transform((invoice) => ({
-			...invoice,
-			dateOfIssue: new Date(invoice.dateOfIssue)
-		}))
+		.omit({ dateOfIssue: true, logs: true, id: true })
+		.refine((data) => data.senderId !== -1n, { message: 'Choose a sender' })
+		.refine((data) => data.recipientId !== -1n, { message: 'Choose a recipient' })
 		.refine(
-			({ senderId, recipientId }) => {
-				return senderId !== recipientId
-			},
-			{ message: 'Sender and recipient must be different' }
+			(data) =>
+				(data.senderId === -1n && data.recipientId === -1n) || data.recipientId !== data.senderId,
+			{
+				message: 'Recipient and Sender cannot be same'
+			}
 		),
 	invoiceSchema.extend({
 		dateOfIssue: dbDateSchema,

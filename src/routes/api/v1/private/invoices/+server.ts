@@ -42,12 +42,17 @@ export const GET = makeResultHandler(
 
 export const POST = makeResultHandler(
 	'POST',
-	invoiceSchema.omit({ dateOfIssue: true, logs: true, id: true }).refine(
-		({ senderId, recipientId }) => {
-			return senderId !== recipientId
-		},
-		{ message: 'Sender and recipient must be different' }
-	),
+	invoiceSchema
+		.omit({ dateOfIssue: true, logs: true, id: true })
+		.refine((data) => data.senderId !== -1n, { message: 'Choose a sender' })
+		.refine((data) => data.recipientId !== -1n, { message: 'Choose a recipient' })
+		.refine(
+			(data) =>
+				(data.senderId === -1n && data.recipientId === -1n) || data.recipientId !== data.senderId,
+			{
+				message: 'Recipient and Sender cannot be same'
+			}
+		),
 	invoiceSchema.extend({
 		dateOfIssue: dbDateSchema,
 		logs: invoiceItemLogSchema.extend({ cost: dbDecimalSchema }).array().default(Array)
