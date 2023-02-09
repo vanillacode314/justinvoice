@@ -9,21 +9,10 @@ const dataSchema = z.object({
 
 const send = (result: TResult<z.input<typeof dataSchema>>) => resultSchema(dataSchema).parse(result)
 
-export const load = (async ({ parent, url, params, fetch }) => {
+export const load = (async ({ url, params, fetch }) => {
 	const fetcher = createFetcher(fetch)
 	const $offlineMode = Boolean(url.searchParams.get('offlineMode'))
 	if (!$offlineMode) {
-		const { user } = await parent()
-		if (user === null) {
-			return send({
-				success: true,
-				data: {
-					invoices: [],
-					addressbook: []
-				}
-			})
-		}
-
 		const result = await fetcher(
 			resultSchema(dataSchema),
 			`/api/v1/private/invoices/${params.id}?` +

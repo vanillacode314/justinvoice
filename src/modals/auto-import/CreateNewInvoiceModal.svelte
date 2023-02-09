@@ -14,7 +14,6 @@
 	import type z from 'zod'
 
 	const fetcher = createFetcher(fetch)
-
 	const formSchema = invoiceSchema.omit({ id: true, dateOfIssue: true, logs: true }).refine(
 		(invoice) => {
 			if (invoice.senderId === -1n || invoice.recipientId === -1n) return true
@@ -30,7 +29,7 @@
 	/// METHODS ///
 	async function onOpen() {
 		formData = formSchema.parse({
-			senderId: $settings.defaultSender,
+			senderId: $settings.defaultSender ?? -1n,
 			currency: $settings.defaultCurrency
 		})
 		if ($offlineMode) return
@@ -62,7 +61,7 @@
 		}
 	}
 
-	async function newAddress(): Promise<number> {
+	async function newAddress(): Promise<z.infer<typeof entitySchema.shape.id>> {
 		$addNewAddressModalOpen = true
 		return new Promise(async (resolve) => {
 			const { selectedAddressId } = await getNextValue(
@@ -96,7 +95,7 @@
 				label="Sender's Address"
 				value={String(formData.senderId)}
 				on:change={(e) => {
-					formData.senderId = e.currentTarget.value ? +e.currentTarget.value : -1
+					formData.senderId = e.currentTarget.value ? BigInt(e.currentTarget.value) : -1n
 				}}
 				options={[
 					{ value: '-1', label: 'Pick a sender', disabled: true, selected: true },
@@ -119,7 +118,7 @@
 				id="invoice-recipient"
 				value={String(formData.recipientId)}
 				on:change={(e) => {
-					formData.recipientId = e.currentTarget.value ? +e.currentTarget.value : -1
+					formData.recipientId = e.currentTarget.value ? BigInt(e.currentTarget.value) : -1n
 				}}
 				options={[
 					{ value: '-1', label: 'Pick a recipient', disabled: true, selected: true },

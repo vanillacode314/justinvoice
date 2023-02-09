@@ -49,7 +49,8 @@ export const POST = makeResultHandler(
 		{ message: 'Sender and recipient must be different' }
 	),
 	invoiceSchema.extend({
-		dateOfIssue: dbDateSchema
+		dateOfIssue: dbDateSchema,
+		logs: invoiceItemLogSchema.extend({ cost: dbDecimalSchema }).array().default(Array)
 	}),
 	async ({ send, data, locals }) => {
 		const { title, senderId, recipientId, currency } = data
@@ -58,10 +59,13 @@ export const POST = makeResultHandler(
 			db.invoice.create({
 				data: {
 					title,
-					senderId: +senderId,
-					recipientId: +recipientId,
+					senderId,
+					recipientId,
 					currency,
 					userId: user
+				},
+				include: {
+					logs: true
 				}
 			})
 		)

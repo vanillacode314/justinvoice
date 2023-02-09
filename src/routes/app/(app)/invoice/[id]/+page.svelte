@@ -11,7 +11,7 @@
 	import { page } from '$app/stores'
 
 	/// STATE ///
-	$: id = BigInt(+$page.params.id)
+	$: id = BigInt($page.params.id)
 	$: invoice = $userState.invoices.find((i) => i.id === id)
 	$: $appState.selectedInvoiceId = id
 	let deleteInvoiceModalOpen: boolean = false
@@ -113,7 +113,7 @@
 						{
 							icon: 'i-mdi-clipboard',
 							label: 'Copy ID',
-							action: () => navigator.clipboard.writeText(id)
+							action: () => navigator.clipboard.writeText(String(id))
 						},
 						{
 							icon: 'i-mdi-printer',
@@ -238,9 +238,9 @@
 	on:confirm={(e) => {
 		e.detail(async () => {
 			if (!invoice) return
-			await removeItems(
+			await removeLogs(
 				id,
-				getSelectedFromArray(invoice.logs, selectedItems).map(({ id }) => id)
+				getSelectedFromArray(invoice.logs, selectedItems).map((address) => address.id)
 			)
 			selectedItems.fill(false)
 		})

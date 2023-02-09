@@ -55,7 +55,8 @@ export const PUT = makeResultHandler(
 		{ message: 'Sender and recipient must be different' }
 	),
 	invoiceSchema.extend({
-		dateOfIssue: dbDateSchema
+		dateOfIssue: dbDateSchema,
+		logs: invoiceItemLogSchema.extend({ cost: dbDecimalSchema }).array().default(Array)
 	}),
 	async ({ send, data, params, locals }) => {
 		const { title, senderId, recipientId, currency } = data
@@ -70,7 +71,13 @@ export const PUT = makeResultHandler(
 					currency,
 					userId: user
 				},
-				where: { id }
+				include: {
+					logs: true
+				},
+				where: {
+					id,
+					userId: user
+				}
 			})
 		)
 		return send(result, { statusCode: result.success ? 200 : 500 })

@@ -8,20 +8,10 @@ const dataSchema = z.object({
 const parse = (result: TResult<z.input<typeof dataSchema>>) =>
 	resultSchema(dataSchema).parse(result)
 
-export const load = (async ({ parent, url, fetch }) => {
+export const load = (async ({ url, fetch }) => {
 	const fetcher = createFetcher(fetch)
 	const $offlineMode = Boolean(url.searchParams.get('offlineMode'))
 	if (!$offlineMode) {
-		const { user } = await parent()
-		if (!user) {
-			return parse({
-				success: true,
-				data: {
-					addressbook: []
-				}
-			})
-		}
-
 		const result = await fetcher(resultSchema(entitySchema.array()), '/api/v1/private/entities')
 		if (!result.success) {
 			return parse({
