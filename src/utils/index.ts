@@ -111,7 +111,6 @@ export const createFetcher = (
 	createZodFetcher(async (input, init?) => {
 		const res = await fetcher(input, init)
 		const value = await res.text()
-		console.warn(value)
 		return devalue.parse(value)
 	})
 

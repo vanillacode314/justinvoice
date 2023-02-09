@@ -31,7 +31,7 @@
 	<form method="dialog" class="flex flex-col gap-5" on:submit={onSubmit}>
 		<h3 class="font-bold text-xl flex gap-5 items-center">
 			<span class="i-mdi-notes text-2xl text-stone-400" />
-			<span>Invoice Notes</span>
+			<span>Notes</span>
 		</h3>
 		<Input id="notes" textarea bind:value={notes} />
 		<div class="modal-action">

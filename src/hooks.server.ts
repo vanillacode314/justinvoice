@@ -1,4 +1,5 @@
 import type { Handle } from '@sveltejs/kit'
+import * as devalue from 'devalue'
 import { checkSession } from './lib/auth'
 import { resultSchema } from './types'
 
@@ -7,7 +8,7 @@ function isProtectedRoute(route: string): boolean {
 }
 
 const send = (result: {}, { statusCode = 200 }: Partial<{ statusCode: number }> = {}) => {
-	return new Response(JSON.stringify(resultSchema(z.object({})).parse(result)), {
+	return new Response(devalue.stringify(resultSchema(z.object({})).parse(result)), {
 		status: statusCode
 	})
 }

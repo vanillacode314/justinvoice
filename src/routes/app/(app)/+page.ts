@@ -12,30 +12,15 @@ export const load = (async ({ url, fetch }) => {
 	const fetcher = createFetcher(fetch)
 	const $offlineMode = Boolean(url.searchParams.get('offlineMode'))
 	if (!$offlineMode) {
-		try {
-			const result = await fetcher(
-				resultSchema(dataSchema),
-				'/api/v1/private/invoices?' +
-					buildQueryString({
-						includeLogs: false,
-						archived: false
-					})
-			)
-			if (!result.success) {
-				return send({
-					success: true,
-					data: {
-						invoices: [],
-						addressbook: []
-					}
+		const result = await fetcher(
+			resultSchema(dataSchema),
+			'/api/v1/private/invoices?' +
+				buildQueryString({
+					includeLogs: false,
+					archived: false
 				})
-			}
-
-			return send({
-				success: true,
-				data: result.data
-			})
-		} catch (error) {
+		)
+		if (!result.success) {
 			return send({
 				success: true,
 				data: {
@@ -44,6 +29,11 @@ export const load = (async ({ url, fetch }) => {
 				}
 			})
 		}
+
+		return send({
+			success: true,
+			data: result.data
+		})
 	}
 
 	return send({

@@ -34,11 +34,11 @@ export type TSettings = z.infer<typeof settingsSchema>
 export const settings = persisted<TSettings>('settings-v1', settingsSchema.parse({}), {
 	serializer: {
 		parse(value) {
-			const result = settingsSchema.safeParse(JSON.parse(value))
+			const result = settingsSchema.safeParse(devalue.parse(value))
 			return result.success ? result.data : settingsSchema.parse({})
 		},
 		stringify(object) {
-			return JSON.stringify(settingsSchema.parse(object))
+			return devalue.stringify(settingsSchema.parse(object))
 		}
 	}
 })
