@@ -14,7 +14,8 @@
 	import type z from 'zod'
 	import { addNewAddressModalOpen } from './AddNewAddressModal.svelte'
 
-	let formData: TInvoice = invoiceSchema.parse({})
+	const formSchema = invoiceSchema
+	let formData: z.infer<typeof formSchema> = formSchema.parse({})
 	let processingEdit: boolean = false
 	const fetcher = createFetcher(fetch)
 
@@ -31,12 +32,32 @@
 	async function onSubmit(e: SubmitEvent) {
 		e.preventDefault()
 		processingEdit = true
+		if ($userState.addressbook.length < 2) {
+			toast(
+				'INVALID_DATA',
+				'You must have at least two addresses before you can create an invoice.',
+				{ type: 'error', duration: 5000 }
+			)
+			processingEdit = false
+			return
+		}
+		const schema = formSchema
+			.refine((data) => data.senderId !== -1n, { message: 'Choose a sender' })
+			.refine((data) => data.recipientId !== -1n, { message: 'Choose a recipient' })
+			.refine(
+				(data) =>
+					(data.senderId === -1n && data.recipientId === -1n) || data.recipientId !== data.senderId,
+				{
+					message: 'Recipient and Sender cannot be same'
+				}
+			)
 		if ($appState.selectedInvoiceId) {
-			const result = invoiceSchema.safeParse(formData)
+			const result = schema.safeParse(formData)
 			if (!result.success) {
 				for (const error of result.error.errors) {
-					toast('Invalid Data', error.message, { type: 'error', duration: 5000 })
+					toast('INVALID_DATA', error.message, { type: 'error', duration: 5000 })
 				}
+				processingEdit = false
 				return
 			}
 			await editInvoice(result.data).finally(() => (processingEdit = false))
