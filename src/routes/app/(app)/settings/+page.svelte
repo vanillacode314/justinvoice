@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Input from '$/components/base/Input.svelte'
 	import Select from '$/components/base/Select.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
-	import { offlineMode, settings, settingsSchema, userState } from '$/stores'
+	import { offlineMode, settings, settingsSchema, userState, userStateSchema } from '$/stores'
 	import { entitySchema, resultSchema } from '$/types'
 
 	const fetcher = createFetcher(fetch)
@@ -20,8 +21,21 @@
 		$settings = $settings
 	}
 
-	function clearData() {
+	async function clearData() {
+		if (!$offlineMode) {
+			const result = await fetcher(resultSchema(z.object({})), '/api/v1/private/clear-data', {
+				method: 'DELETE'
+			})
+			if (!result.success) {
+				toast(result.error.code, result.error.message, {
+					type: 'error'
+				})
+				return
+			}
+		}
+		$userState = userStateSchema.parse({})
 		$settings = settingsSchema.parse({})
+		toast('DATA_CLEAR_SUCCESS', 'Data cleared successfully', { type: 'success' })
 	}
 
 	onMount(async () => {
@@ -58,7 +72,7 @@
 		name="sender"
 		value={formData.defaultSender ? String(formData.defaultSender) : ''}
 		on:change={(e) => {
-			formData.defaultSender = e.currentTarget.value ? +e.currentTarget.value : null
+			formData.defaultSender = e.currentTarget.value ? BigInt(e.currentTarget.value) : null
 			onChange()
 		}}
 	/>
@@ -66,7 +80,7 @@
 		title="Delete all data?"
 		message="Are you sure you would like to delete all data?"
 		icon="i-mdi-warning"
-		on:confirm={clearData}
+		on:confirm={(e) => e.detail(clearData)}
 	>
 		<button class="btn btn-error">Clear Data</button>
 	</ConfirmModal>
