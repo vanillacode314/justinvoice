@@ -14,6 +14,8 @@
 	$: if (!openedOnce) {
 		openedOnce = open
 	}
+
+	let mouseDown: boolean = false
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -24,7 +26,14 @@
 >
 	<div
 		class="h-full flex md:items-center md:justify-center items-end p-0 m-0"
-		on:click={(e) => e.currentTarget === e.target && dialogElement.close()}
+		on:mousedown|self={(e) => {
+			mouseDown = true
+		}}
+		on:mouseup|self={(e) => {
+			if (!mouseDown) return
+			mouseDown = false
+			dialogElement.close()
+		}}
 	>
 		<div class="bg-stone-900 p-5 md:rounded-2xl shadow-lg w-full md:mx-auto md:max-w-xl">
 			<slot />
