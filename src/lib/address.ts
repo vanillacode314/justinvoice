@@ -1,8 +1,6 @@
 import { offlineMode, userState } from '$/stores'
 import { entitySchema, resultSchema } from '$/types'
-import { createZodFetcher } from 'zod-fetch'
-
-const fetcher = createZodFetcher()
+const fetcher = createFetcher(fetch)
 
 export async function addAddress(
 	name: TEntity['name'],
