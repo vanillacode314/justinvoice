@@ -8,3 +8,5 @@ node_modules
 !.env.example
 
 pnpm-lock.yaml
+# Local Netlify folder
+.netlify
