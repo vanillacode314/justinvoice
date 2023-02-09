@@ -48,18 +48,23 @@ export const GET: RequestHandler = makeResultHandler(
 
 export const PUT = makeResultHandler(
 	'PUT',
-	invoiceSchema.omit({ id: true }).refine(
-		({ senderId, recipientId }) => {
-			return senderId !== recipientId
-		},
-		{ message: 'Sender and recipient must be different' }
-	),
+	invoiceSchema
+		.omit({ logs: true, id: true })
+		.transform((invoice) => {
+			return { ...invoice, dateOfIssue: new Date(invoice.dateOfIssue) }
+		})
+		.refine(
+			({ senderId, recipientId }) => {
+				return senderId !== recipientId
+			},
+			{ message: 'Sender and recipient must be different' }
+		),
 	invoiceSchema.extend({
 		dateOfIssue: dbDateSchema,
 		logs: invoiceItemLogSchema.extend({ cost: dbDecimalSchema }).array().default(Array)
 	}),
 	async ({ send, data, params, locals }) => {
-		const { title, senderId, recipientId, currency } = data
+		const { dateOfIssue, archived, paid, title, senderId, recipientId, currency } = data
 		const id = +params.invoiceId!
 		const user = locals.user!
 		const result = await handleTransaction(() =>
@@ -69,6 +74,9 @@ export const PUT = makeResultHandler(
 					senderId,
 					recipientId,
 					currency,
+					paid,
+					archived,
+					dateOfIssue,
 					userId: user
 				},
 				include: {

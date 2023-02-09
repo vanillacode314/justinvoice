@@ -5,10 +5,13 @@
 	import { editInvoiceModalOpen } from '$/modals/auto-import/EditInvoiceModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
-	import { actionSchema, appState, userState } from '$/stores'
+	import { actionSchema, appState, offlineMode, userState } from '$/stores'
+	import { invoiceSchema, resultSchema } from '$/types'
 	import { exportToJsonFile } from '$/utils'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
+
+	const fetcher = createFetcher(fetch)
 
 	/// STATE ///
 	$: id = BigInt($page.params.id)
@@ -18,8 +21,8 @@
 	let deleteItemsModalOpen: boolean = false
 	let selectedItems: boolean[] = []
 
-	$: recipient = $userState.addressbook.find(({ id }) => id == invoice?.recipientId)
-	$: sender = $userState.addressbook.find(({ id }) => id == invoice?.senderId)
+	$: recipient = $userState.addressbook.find((address) => address.id == invoice?.recipientId)
+	$: sender = $userState.addressbook.find((address) => address.id == invoice?.senderId)
 
 	$: stats =
 		invoice && sender && recipient
@@ -73,7 +76,23 @@
 		)
 	}
 
-	function onPaidChange() {
+	async function onPaidChange(e: Event) {
+		const inp = e.currentTarget as HTMLInputElement
+		const { checked } = inp
+		inp.indeterminate = true
+		if (!invoice) return
+		if (!$offlineMode) {
+			const result = await fetcher(resultSchema(invoiceSchema), `/api/v1/private/invoices/${id}`, {
+				method: 'PUT',
+				body: buildFormData({ ...invoice, paid: checked })
+			})
+			if (result.success) {
+				invoice.paid = result.data.paid
+			}
+		}
+		inp.checked = invoice.paid
+		invoice = invoice
+		inp.indeterminate = false
 		$userState = $userState
 	}
 
@@ -168,7 +187,7 @@
 							<input
 								type="checkbox"
 								class="toggle toggle-sm"
-								bind:checked={invoice.paid}
+								checked={invoice.paid}
 								on:change={onPaidChange}
 							/>
 							<span class="label-text">Paid</span>
