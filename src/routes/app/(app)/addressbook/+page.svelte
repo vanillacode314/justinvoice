@@ -10,10 +10,10 @@
 	$: $appState.selectionMode = selectedAddresses.some((val) => val === true)
 	$: selectedAddresses.length = $userState.addressbook.length
 
-	function getActions(selectionMode: boolean, ..._args: any[]) {
+	function getActions(..._args: any[]) {
 		const allSelected = selectedAddresses.every((val) => val === true)
 		return actionSchema.array().parse(
-			selectionMode
+			$appState.selectionMode
 				? [
 						{
 							icon: 'i-mdi-select-all',

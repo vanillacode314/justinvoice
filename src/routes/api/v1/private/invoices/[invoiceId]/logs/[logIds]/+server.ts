@@ -34,16 +34,9 @@ export const PUT = makeResultHandler(
 		const user = locals.user!
 		const invoiceId = +params.invoiceId!
 		const id = +params.logIds!
-		const { title, cost, qty, description, type } = data
 		const result = await handleTransaction(() =>
 			db.log.update({
-				data: {
-					title,
-					cost,
-					type,
-					qty,
-					description
-				},
+				data: data,
 				where: { id, invoiceId, invoice: { userId: user } }
 			})
 		)

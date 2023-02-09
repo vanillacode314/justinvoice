@@ -35,34 +35,27 @@ export async function addAddress(
 	return entity
 }
 
-export async function editAddress(
-	id: TEntity['id'],
-	name: TEntity['name'],
-	address: TEntity['address']
-): Promise<TEntity> {
+export async function editAddress(address: TEntity): Promise<TEntity> {
 	const $offlineMode = get(offlineMode)
 	let entity: TEntity
 	if ($offlineMode) {
-		entity = {
-			id,
-			name,
-			address
-		}
+		entity = address
 	} else {
-		const result = await fetcher(resultSchema(entitySchema), `/api/v1/private/entities/${id}`, {
-			method: 'PUT',
-			body: buildFormData({
-				name,
-				address
-			})
-		})
+		const result = await fetcher(
+			resultSchema(entitySchema),
+			`/api/v1/private/entities/${address.id}`,
+			{
+				method: 'PUT',
+				body: buildFormData(address)
+			}
+		)
 		if (!result.success) throw new Error(result.error.message)
 		entity = result.data
 	}
 
 	userState.update(($userState) => {
 		const { addressbook } = $userState
-		const _entity = addressbook.find((entity) => entity.id === id)!
+		const _entity = addressbook.find((entity) => entity.id === address.id)!
 		if (_entity) {
 			Object.assign(_entity, entity)
 		}

@@ -42,7 +42,7 @@ export const GET = makeResultHandler(
 
 export const POST = makeResultHandler(
 	'POST',
-	invoiceSchema.omit({ id: true }).refine(
+	invoiceSchema.omit({ dateOfIssue: true, logs: true, id: true }).refine(
 		({ senderId, recipientId }) => {
 			return senderId !== recipientId
 		},
@@ -53,15 +53,11 @@ export const POST = makeResultHandler(
 		logs: invoiceItemLogSchema.extend({ cost: dbDecimalSchema }).array().default(Array)
 	}),
 	async ({ send, data, locals }) => {
-		const { title, senderId, recipientId, currency } = data
 		const user = locals.user!
 		const result = await handleTransaction(() =>
 			db.invoice.create({
 				data: {
-					title,
-					senderId,
-					recipientId,
-					currency,
+					...data,
 					userId: user
 				},
 				include: {

@@ -23,12 +23,10 @@ export const POST = makeResultHandler(
 	entitySchema,
 	async ({ locals, send, data }) => {
 		const user = locals.user!
-		const { name, address } = data
 		const result = await handleTransaction(() =>
 			db.entity.create({
 				data: {
-					name,
-					address,
+					...data,
 					userId: user
 				}
 			})

@@ -9,7 +9,7 @@ export const POST = makeResultHandler(
 	z.object({}),
 	async ({ send, data, locals }) => {
 		const user = locals.user!
-		let { invoices, addressbook } = data
+		const { invoices, addressbook } = data
 		let result = await handleTransaction(() =>
 			db.$transaction([
 				db.invoice.findMany({
@@ -32,8 +32,8 @@ export const POST = makeResultHandler(
 			return send(result)
 		}
 		const _data = result.data
-		invoices = invoices.filter((invoice) => !_data[0].some(({ id }) => invoice.id === id))
-		addressbook = addressbook.filter((address) => !_data[1].some(({ id }) => address.id === id))
+		filterInPlace(invoices, (invoice) => !_data[0].some(({ id }) => invoice.id === id))
+		filterInPlace(addressbook, (address) => !_data[1].some(({ id }) => address.id === id))
 		result = await handleTransaction(() =>
 			db
 				.$transaction([

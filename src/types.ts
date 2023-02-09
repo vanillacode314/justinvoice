@@ -2,13 +2,14 @@ import { z } from 'zod'
 
 export const sessionSchema = z.object({
 	expired: z.boolean(),
-	user: z.number().nullable()
+	user: z.bigint().nullable()
 })
 
 export const entitySchema = z.object({
 	id: z.bigint().default(-1n),
 	name: z.string().trim().default(''),
-	address: z.string().trim().default('')
+	address: z.string().trim().default(''),
+	notes: z.string().trim().default('')
 })
 
 export const InvoiceItemType = ['GOODS', 'SERVICES'] as const
@@ -40,7 +41,8 @@ export const invoiceSchema = z.object({
 	senderId: z.bigint().default(-1n),
 	recipientId: z.bigint().default(-1n),
 	archived: z.boolean().default(false),
-	logs: invoiceItemLogSchema.array().default(Array)
+	logs: invoiceItemLogSchema.array().default(Array),
+	notes: z.string().trim().default('')
 })
 
 export function resultSchema<TData extends z.ZodTypeAny>(dataSchema: TData) {

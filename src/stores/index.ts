@@ -60,10 +60,9 @@ offlineMode.subscribe(async ($offlineMode) => {
 	const url = new URL(location.href)
 	const urlState = Boolean(url.searchParams.get('offlineMode'))
 	if (urlState === $offlineMode) return
-	$offlineMode
-		? url.searchParams.set('offlineMode', 'true')
-		: url.searchParams.delete('offlineMode')
-	await goto(url)
+	const newUrl = new URL(window.location.origin + '/app')
+	if ($offlineMode) newUrl.searchParams.set('offlineMode', 'true')
+	await goto(newUrl)
 	await invalidate('offlineMode')
 })
 

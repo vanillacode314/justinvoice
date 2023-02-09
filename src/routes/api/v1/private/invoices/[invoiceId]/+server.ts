@@ -50,9 +50,10 @@ export const PUT = makeResultHandler(
 	'PUT',
 	invoiceSchema
 		.omit({ logs: true, id: true })
-		.transform((invoice) => {
-			return { ...invoice, dateOfIssue: new Date(invoice.dateOfIssue) }
-		})
+		.transform((invoice) => ({
+			...invoice,
+			dateOfIssue: new Date(invoice.dateOfIssue)
+		}))
 		.refine(
 			({ senderId, recipientId }) => {
 				return senderId !== recipientId
@@ -64,21 +65,11 @@ export const PUT = makeResultHandler(
 		logs: invoiceItemLogSchema.extend({ cost: dbDecimalSchema }).array().default(Array)
 	}),
 	async ({ send, data, params, locals }) => {
-		const { dateOfIssue, archived, paid, title, senderId, recipientId, currency } = data
 		const id = +params.invoiceId!
 		const user = locals.user!
 		const result = await handleTransaction(() =>
 			db.invoice.update({
-				data: {
-					title,
-					senderId,
-					recipientId,
-					currency,
-					paid,
-					archived,
-					dateOfIssue,
-					userId: user
-				},
+				data: data,
 				include: {
 					logs: true
 				},

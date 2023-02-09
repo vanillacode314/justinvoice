@@ -2,7 +2,7 @@
 	import { alert } from '$/modals/AlertModal.svelte'
 	import { editItemModalOpen } from '$/modals/auto-import/EditItemModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
-	import { appState, userState } from '$/stores'
+	import { appState } from '$/stores'
 	import Selectable from './base/Selectable.svelte'
 
 	/// STATE ///
@@ -13,8 +13,7 @@
 	export let cost: TInvoiceItemLog['cost']
 	export let description: TInvoiceItemLog['description']
 	export let selected: boolean = false
-
-	$: selectedInvoice = $userState.invoices.find(({ id }) => id === $appState.selectedInvoiceId)
+	export let currency: TInvoice['currency']
 
 	function editItem() {
 		$appState.selectedItemId = id
@@ -41,13 +40,13 @@
 			<p class="flex gap-1 items-center">
 				<span>Price:</span><span class="font-bold">
 					{cost}
-					{selectedInvoice?.currency}
+					{currency}
 				</span>
 			</p>
 			<p class="flex gap-1 items-center">
 				<span>Subtotal:</span><span class="font-bold">
 					{cost} &times; {qty} = {cost * qty}
-					{selectedInvoice?.currency}
+					{currency}
 				</span>
 			</p>
 			<span class="grow h-full" />

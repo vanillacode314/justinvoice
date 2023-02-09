@@ -14,7 +14,7 @@
 	import type z from 'zod'
 
 	const fetcher = createFetcher(fetch)
-	const formSchema = invoiceSchema.omit({ id: true, dateOfIssue: true, logs: true }).refine(
+	const formSchema = invoiceSchema.refine(
 		(invoice) => {
 			if (invoice.senderId === -1n || invoice.recipientId === -1n) return true
 			return invoice.senderId !== invoice.recipientId
@@ -52,7 +52,7 @@
 
 		const data = result.data
 		try {
-			const { id } = await createInvoice(data.title, data.senderId, data.recipientId, data.currency)
+			const { id } = await createInvoice(result.data)
 			$appState.drawerVisible = false
 			$createNewInvoiceModalOpen = false
 			await goto(`/app/invoice/${id}`)

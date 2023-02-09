@@ -3,6 +3,7 @@
 	import { alert } from '$/modals/AlertModal.svelte'
 	import { addNewItemModalOpen } from '$/modals/auto-import/AddNewItemModal.svelte'
 	import { editInvoiceModalOpen } from '$/modals/auto-import/EditInvoiceModal.svelte'
+	import { invoiceNotesModalOpen } from '$/modals/auto-import/InvoiceNotesModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { actionSchema, appState, offlineMode, userState } from '$/stores'
@@ -49,10 +50,6 @@
 		$addNewItemModalOpen = true
 	}
 
-	function editInvoice() {
-		$editInvoiceModalOpen = true
-	}
-
 	async function exportInvoice() {
 		if (!(invoice && sender && recipient)) return
 
@@ -77,22 +74,13 @@
 	}
 
 	async function onPaidChange(e: Event) {
+		if (!invoice) return
 		const inp = e.currentTarget as HTMLInputElement
 		const { checked } = inp
 		inp.indeterminate = true
-		if (!invoice) return
-		if (!$offlineMode) {
-			const result = await fetcher(resultSchema(invoiceSchema), `/api/v1/private/invoices/${id}`, {
-				method: 'PUT',
-				body: buildFormData({ ...invoice, paid: checked })
-			})
-			if (result.success) {
-				invoice.paid = result.data.paid
-			}
-		}
-		inp.checked = invoice.paid
-		invoice = invoice
-		inp.indeterminate = false
+		await editInvoice(Object.assign(invoice, { paid: checked })).finally(
+			() => (inp.indeterminate = false)
+		)
 		$userState = $userState
 	}
 
@@ -109,61 +97,82 @@
 		window.open(`/pdf/${id}`, '_blank')
 	}
 
+	function getActions(..._args: any[]) {
+		const allSelected = selectedItems.every((val) => val === true)
+		return z
+			.union([actionSchema, z.literal('spacer')])
+			.array()
+			.parse(
+				invoice && sender && recipient
+					? $appState.selectionMode
+						? [
+								{
+									icon: 'i-mdi-select-all',
+									label: allSelected ? 'Deselect All' : 'Select All',
+									action: () => (selectedItems = selectedItems.fill(!allSelected))
+								},
+								{
+									icon: 'i-mdi-swap-horizontal',
+									label: 'Invert Selection',
+									action: () => (selectedItems = selectedItems.map((val) => !val))
+								},
+								{
+									icon: 'i-mdi-trash',
+									label: 'Delete Items',
+									action: () => (deleteItemsModalOpen = true)
+								}
+						  ]
+						: [
+								{
+									icon: 'i-mdi-arrow-back',
+									label: 'Back',
+									noFab: true,
+									action: () => goto('/app')
+								},
+								'spacer',
+								{
+									icon: 'i-mdi-notes',
+									label: 'Notes',
+									action: () => ($invoiceNotesModalOpen = true)
+								},
+								{
+									icon: 'i-mdi-clipboard',
+									label: 'Copy ID',
+									action: () => navigator.clipboard.writeText(String(id))
+								},
+								{
+									icon: 'i-mdi-printer',
+									label: 'Print',
+									action: print
+								},
+								{
+									icon: 'i-mdi-export',
+									label: 'Export',
+									action: exportInvoice
+								},
+								{
+									icon: 'i-mdi-trash',
+									label: 'Delete',
+									action: () => (deleteInvoiceModalOpen = true)
+								},
+								{
+									icon: 'i-mdi-edit',
+									label: 'Edit',
+									action: () => ($editInvoiceModalOpen = true)
+								},
+								{
+									icon: 'i-mdi-add',
+									label: 'Add Item',
+									color: 'btn-primary',
+									action: addItem
+								}
+						  ]
+					: []
+			)
+	}
 	$: $appState.selectionMode = selectedItems.some((val) => val === true)
 	$: selectedItems.length = invoice ? invoice.logs.length : 0
-	$: $appState.actions = z.array(z.union([actionSchema, z.literal('spacer')])).parse(
-		invoice && sender && recipient
-			? $appState.selectionMode
-				? [
-						{
-							icon: 'i-mdi-trash',
-							label: 'Delete Items',
-							action: () => (deleteItemsModalOpen = true)
-						}
-				  ]
-				: [
-						{
-							icon: 'i-mdi-arrow-back',
-							label: 'Back',
-							noFab: true,
-							action: () => goto('/app')
-						},
-						'spacer',
-						{
-							icon: 'i-mdi-clipboard',
-							label: 'Copy ID',
-							action: () => navigator.clipboard.writeText(String(id))
-						},
-						{
-							icon: 'i-mdi-printer',
-							label: 'Print',
-							action: print
-						},
-						{
-							icon: 'i-mdi-export',
-							label: 'Export',
-							action: exportInvoice
-						},
-						{
-							icon: 'i-mdi-trash',
-							label: 'Delete',
-							action: () => (deleteInvoiceModalOpen = true)
-						},
-						{
-							icon: 'i-mdi-edit',
-							label: 'Edit',
-							action: editInvoice
-						},
-						{
-							icon: 'i-mdi-add',
-							label: 'Add Item',
-							color: 'btn-primary',
-							action: addItem
-						}
-				  ]
-			: []
-	)
-
+	$: $appState.actions = getActions($appState.selectionMode, selectedItems)
 	onDestroy(() => {
 		selectedItems.fill(false)
 		$appState.actions = []
@@ -227,7 +236,7 @@
 						out:scale|local
 						class="grid"
 					>
-						<Item {...log} bind:selected={selectedItems[index]} />
+						<Item {...log} currency={invoice.currency} bind:selected={selectedItems[index]} />
 					</div>
 				{/each}
 			</div>

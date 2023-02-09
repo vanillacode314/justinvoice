@@ -39,14 +39,7 @@
 				}
 				return
 			}
-			const { title, currency, senderId, recipientId } = result.data
-			await editInvoice(
-				$appState.selectedInvoiceId,
-				title,
-				senderId,
-				recipientId,
-				currency
-			).finally(() => (processingEdit = false))
+			await editInvoice(result.data).finally(() => (processingEdit = false))
 		}
 		$editInvoiceModalOpen = false
 		$appState.drawerVisible = false

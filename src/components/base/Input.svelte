@@ -3,11 +3,12 @@
 
 	interface $$Props extends Omit<HTMLInputAttributes, 'class' | 'id'> {
 		id: string
-		label: string
+		label?: string
 		textarea?: boolean
 		group?: string | string[]
 		value?: string | number
 		type?: string
+		inputElement?: HTMLInputElement
 	}
 
 	export let id: string
@@ -16,8 +17,7 @@
 	export let type: string = 'text'
 	export let group: string | string[] = type === 'checkbox' ? [] : ''
 	export let value: string | number = ''
-
-	export let inputElement!: HTMLInputElement
+	export let inputElement: HTMLInputElement | null = null
 	let showPassword: boolean = false
 </script>
 
@@ -30,17 +30,22 @@
 	class:items-center={['checkbox', 'radio'].includes(type)}
 >
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<label
-		for={id}
-		class="uppercase font-semibold text-gray-400 tracking-wider text-xs cursor-pointer"
-		on:click={() => {
-			if (type === 'radio') {
-				inputElement.click()
-			} else if (type === 'checkbox') {
-				$$restProps.checked = inputElement.checked
-			}
-		}}>{label}</label
-	>
+	{#if label}
+		<label
+			for={id}
+			class="uppercase font-semibold text-gray-400 tracking-wider text-xs cursor-pointer"
+			on:click={() => {
+				if (!inputElement) return
+				if (type === 'radio') {
+					inputElement.click()
+				} else if (type === 'checkbox') {
+					$$restProps.checked = inputElement.checked
+				}
+			}}
+		>
+			{label}
+		</label>
+	{/if}
 	{#if textarea}
 		<textarea
 			on:input

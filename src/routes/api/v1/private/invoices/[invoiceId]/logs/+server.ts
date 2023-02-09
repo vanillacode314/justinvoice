@@ -27,15 +27,10 @@ export const POST = makeResultHandler(
 	invoiceItemLogSchema.extend({ cost: dbDecimalSchema }),
 	async ({ data, params, send }) => {
 		const invoiceId = +params.invoiceId!
-		const { title, cost, qty, description, type } = data
 		const result = await handleTransaction(() =>
 			db.log.create({
 				data: {
-					title,
-					cost,
-					type,
-					qty,
-					description,
+					...data,
 					invoiceId
 				}
 			})

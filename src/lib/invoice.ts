@@ -5,89 +5,60 @@ import { z } from 'zod'
 
 const fetcher = createFetcher(fetch)
 
-export async function createInvoice(
-	title: TInvoice['title'],
-	senderId: TEntity['id'],
-	recipientId: TEntity['id'],
-	currency: TInvoice['currency']
-): Promise<TInvoice> {
-	let invoice: TInvoice
+export async function createInvoice(invoice: TInvoice): Promise<TInvoice> {
+	let newInvoice: TInvoice
 	const $offlineMode = get(offlineMode)
 
 	if ($offlineMode) {
 		const id = genId(get(userState).invoices.map(({ id }) => id))
-		invoice = invoiceSchema.parse({
-			id,
-			title,
-			senderId,
-			recipientId,
-			currency
-		})
+		newInvoice = { ...invoice, id }
 	} else {
 		const result = await fetcher(resultSchema(invoiceSchema), '/api/v1/private/invoices', {
 			method: 'POST',
-			body: buildFormData({
-				title,
-				senderId,
-				recipientId,
-				currency
-			})
+			body: buildFormData(invoice)
 		})
 
 		if (!result.success) throw new Error(JSON.stringify(result.error))
-		invoice = result.data
+		newInvoice = result.data
 	}
 
 	userState.update(($userState) => {
 		const { invoices } = $userState
-		invoices.push(invoice)
+		invoices.push(newInvoice)
 		return $userState
 	})
-	return invoice
+	return newInvoice
 }
 
-export async function editInvoice(
-	id: TInvoice['id'],
-	title: TInvoice['title'],
-	senderId: TEntity['id'],
-	recipientId: TEntity['id'],
-	currency: TInvoice['currency']
-): Promise<TInvoice> {
-	let invoice: TInvoice
+export async function editInvoice(invoice: TInvoice): Promise<TInvoice> {
+	let newInvoice: TInvoice
 	const $offlineMode = get(offlineMode)
 
 	if ($offlineMode) {
-		invoice = invoiceSchema.parse({
-			id,
-			title,
-			senderId,
-			recipientId,
-			currency
-		})
+		newInvoice = invoice
 	} else {
-		const result = await fetcher(resultSchema(invoiceSchema), '/api/v1/private/invoices/' + id, {
-			method: 'PUT',
-			body: buildFormData({
-				title,
-				senderId,
-				recipientId,
-				currency
-			})
-		})
+		const result = await fetcher(
+			resultSchema(invoiceSchema),
+			'/api/v1/private/invoices/' + invoice.id,
+			{
+				method: 'PUT',
+				body: buildFormData(invoice)
+			}
+		)
 
 		if (!result.success) throw new Error(JSON.stringify(result.error))
-		invoice = result.data
+		newInvoice = result.data
 	}
 
 	userState.update(($userState) => {
 		const { invoices } = $userState
-		const _invoice = invoices.find((invoice) => invoice.id === id)
+		const _invoice = invoices.find((_invoice) => invoice.id === _invoice.id)
 		if (_invoice) {
-			Object.assign(_invoice, invoice)
+			Object.assign(_invoice, newInvoice)
 		}
 		return $userState
 	})
-	return invoice
+	return newInvoice
 }
 
 export async function removeInvoice(id: TInvoice['id']) {

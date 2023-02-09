@@ -41,6 +41,7 @@ model Invoice {
   archived    Boolean  @default(false)
   user        User     @relation(fields: [userId], references: [id])
   userId      BigInt
+  notes       String   @default("") @db.VarChar(1024)
 
   @@index([userId])
   @@index([senderId])
@@ -54,6 +55,7 @@ model Entity {
   invoicesSent     Invoice[] @relation("sender")
   invoicesReceived Invoice[] @relation("recipient")
   user             User      @relation(fields: [userId], references: [id])
+  notes            String    @default("") @db.VarChar(1024)
   userId           BigInt
 
   @@index([userId])
