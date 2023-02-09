@@ -19,6 +19,7 @@
 		"@iconify/json": "^2.2.18",
 		"@playwright/test": "^1.30.0",
 		"@sveltejs/adapter-auto": "^2.0.0",
+		"@sveltejs/adapter-netlify": "^2.0.2",
 		"@sveltejs/kit": "^1.5.0",
 		"@types/bcryptjs": "^2.4.2",
 		"@types/lodash-es": "^4.17.6",

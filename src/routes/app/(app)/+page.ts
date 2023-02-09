@@ -16,7 +16,8 @@ export const load = (async ({ url, fetch }) => {
 			resultSchema(dataSchema),
 			'/api/v1/private/invoices?' +
 				buildQueryString({
-					includeLogs: false
+					includeLogs: false,
+					archived: false
 				})
 		)
 		if (!result.success) {
