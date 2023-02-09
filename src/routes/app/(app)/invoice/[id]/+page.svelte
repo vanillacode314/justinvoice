@@ -119,6 +119,7 @@
 								{
 									icon: 'i-mdi-trash',
 									label: 'Delete Items',
+									color: 'btn-error',
 									action: () => (deleteItemsModalOpen = true)
 								}
 						  ]
@@ -151,14 +152,15 @@
 									action: exportInvoice
 								},
 								{
-									icon: 'i-mdi-trash',
-									label: 'Delete',
-									action: () => (deleteInvoiceModalOpen = true)
-								},
-								{
 									icon: 'i-mdi-edit',
 									label: 'Edit',
 									action: () => ($editInvoiceModalOpen = true)
+								},
+								{
+									icon: 'i-mdi-trash',
+									label: 'Delete',
+									color: 'btn-error',
+									action: () => (deleteInvoiceModalOpen = true)
 								},
 								{
 									icon: 'i-mdi-add',

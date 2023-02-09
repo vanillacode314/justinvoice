@@ -28,6 +28,7 @@
 						{
 							icon: 'i-mdi-trash',
 							label: 'Delete',
+							color: 'btn-error',
 							action: () => (deleteModalOpen = true)
 						}
 				  ]

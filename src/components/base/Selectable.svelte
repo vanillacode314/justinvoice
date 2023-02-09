@@ -14,6 +14,7 @@
 	class="relative grid rounded-xl overflow-hidden"
 	use:longpress={{
 		duration: () => ($appState.selectionMode || selected ? 10 : 1000),
+		vibrate: () => ($appState.selectionMode || selected ? false : true),
 		callback() {
 			selected = !selected
 		}

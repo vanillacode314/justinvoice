@@ -7,6 +7,7 @@ export interface Options {
 	duration?: () => number
 	moveCancelThreshold?: number
 	condition?: () => boolean
+	vibrate?: () => boolean
 }
 
 function distance(pos1: Pos, pos2: Pos): number {
@@ -23,9 +24,14 @@ export const longpress = (
 		condition = () => true,
 		callback = () => {},
 		duration = () => 1000,
-		moveCancelThreshold = 50
+		moveCancelThreshold = 50,
+		vibrate = () => true
 	}: Options = {}
 ) => {
+	const cb = () => {
+		if (vibrate()) navigator.vibrate([200])
+		callback()
+	}
 	let timer: ReturnType<typeof setTimeout>
 	let startPos: Pos = { x: -1, y: -1 }
 	let touchId: number = -1
@@ -36,14 +42,14 @@ export const longpress = (
 		const touch = e.changedTouches[0]
 		touchId = touch.identifier
 		startPos = { x: touch.screenX, y: touch.screenY }
-		timer = setTimeout(() => callback(), duration())
+		timer = setTimeout(() => cb(), duration())
 	}
 
 	const onMouseDown = (e: MouseEvent) => {
 		if (!condition()) return
 		const el = e.currentTarget as HTMLElement
 		el.classList.add('__longpress__')
-		timer = setTimeout(() => callback(), duration())
+		timer = setTimeout(() => cb(), duration())
 	}
 
 	const onMouseUp = (e: MouseEvent) => {
