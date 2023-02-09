@@ -110,9 +110,8 @@ export const createFetcher = (
 ) =>
 	createZodFetcher(async (input, init?) => {
 		const res = await fetcher(input, init)
-		if (!res.ok) throw new Error(`Response failed with status code ${res.status}`)
 		const value = await res.text()
-		console.log(value)
+		console.warn(value)
 		return devalue.parse(value)
 	})
 

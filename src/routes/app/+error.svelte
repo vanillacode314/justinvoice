@@ -1,0 +1,18 @@
+<script lang="ts">
+	import Button from '$/components/base/Button.svelte'
+	let processing: boolean = false
+</script>
+
+<main class="p-10 grid h-full place-content-center gap-5 justify-items-center">
+	<h1 class="uppercase font-bold text-3xl tracking-wide">An Error Occurred</h1>
+	<Button
+		{processing}
+		processingLabel="Retrying"
+		on:click={() => (processing = true)}
+		href="/app"
+		icon="i-mdi-arrow-back"
+		class="btn-lg btn-primary"
+	>
+		Retry
+	</Button>
+</main>

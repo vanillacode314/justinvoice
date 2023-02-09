@@ -36,7 +36,6 @@ export const load = (async ({ url, fetch }) => {
 				data: result.data
 			})
 		} catch (error) {
-			console.log(error)
 			return send({
 				success: true,
 				data: {
