@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { userState } from '$/stores'
+	import { offlineMode, userState } from '$/stores'
 	import { page } from '$app/stores'
 	// @ts-ignore: number-to-words doesn't provide type definitions
 	import * as ntw from 'number-to-words'
 
 	/// State
-	$: id = $page.params.id
+	$: id = BigInt($page.params.id)
 	$: invoice = $userState.invoices.find((i) => i.id === id)
 	$: issueDate = invoice
 		? new Date(invoice.dateOfIssue).toLocaleString(undefined, {
@@ -17,6 +17,10 @@
 	$: sender = $userState.addressbook.find(({ id }) => id == invoice?.senderId)
 
 	onMount(() => {
+		if (!$offlineMode && $page.data.success) {
+			Object.assign($userState, $page.data.data)
+			$userState = $userState
+		}
 		setTimeout(() => {
 			window.onfocus = () => window.close()
 			window.print()
@@ -91,7 +95,7 @@
 						<td>
 							{item.title}
 							<br />
-							<span style="font-size:x-small; color: gray">
+							<span style="font-size:x-small; color: gray; white-space: pre-wrap">
 								{item.description}
 							</span>
 						</td>
