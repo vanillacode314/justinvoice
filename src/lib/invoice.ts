@@ -112,7 +112,9 @@ export async function addLog(
 	const $offlineMode = get(offlineMode)
 	let log: TInvoiceItemLog
 	if ($offlineMode) {
-		const id = crypto.randomUUID()
+		const id = genId(
+			get(userState).invoices.flatMap((invoice) => invoice.logs.map((log) => log.id))
+		)
 		log = invoiceItemLogSchema.parse({
 			id,
 			title,
