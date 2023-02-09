@@ -9,6 +9,9 @@ const config = {
 	define: {
 		__version__: JSON.stringify(pkgJson.version)
 	},
+	build: {
+		sourcemap: true
+	},
 	plugins: [
 		AutoImport({
 			imports: [
