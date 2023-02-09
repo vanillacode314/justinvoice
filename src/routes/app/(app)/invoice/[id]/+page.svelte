@@ -21,6 +21,7 @@
 	let deleteInvoiceModalOpen: boolean = false
 	let deleteItemsModalOpen: boolean = false
 	let selectedItems: boolean[] = []
+	let copyState: 'neutral' | 'success' | 'error' = 'neutral'
 
 	$: recipient = $userState.addressbook.find((address) => address.id == invoice?.recipientId)
 	$: sender = $userState.addressbook.find((address) => address.id == invoice?.senderId)
@@ -89,7 +90,7 @@
 		if (invoice.logs.length === 0) {
 			alert({
 				title: 'Empty Invoice',
-				message: 'Add ateast one item to print invoice',
+				message: 'Add atleast one item to print the invoice',
 				icon: 'i-mdi-warning'
 			})
 			return
@@ -138,8 +139,29 @@
 								},
 								{
 									icon: 'i-mdi-clipboard',
-									label: 'Copy ID',
-									action: () => navigator.clipboard.writeText(String(id))
+									label:
+										copyState === 'neutral'
+											? 'Copy ID'
+											: copyState === 'success'
+											? 'Copy Success'
+											: 'Copy Error',
+									color:
+										copyState === 'neutral'
+											? ''
+											: copyState === 'success'
+											? 'btn-success'
+											: 'btn-error',
+									action: () => {
+										copyState = 'neutral'
+										try {
+											navigator.clipboard.writeText(String(id))
+											copyState = 'success'
+										} catch {
+											copyState = 'error'
+										} finally {
+											setTimeout(() => (copyState = 'neutral'), 3000)
+										}
+									}
 								},
 								{
 									icon: 'i-mdi-printer',
@@ -174,7 +196,7 @@
 	}
 	$: $appState.selectionMode = selectedItems.some((val) => val === true)
 	$: selectedItems.length = invoice ? invoice.logs.length : 0
-	$: $appState.actions = getActions($appState.selectionMode, selectedItems)
+	$: $appState.actions = getActions($appState.selectionMode, selectedItems, copyState)
 	onDestroy(() => {
 		selectedItems.fill(false)
 		$appState.actions = []
