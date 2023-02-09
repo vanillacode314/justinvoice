@@ -3,7 +3,8 @@
 	"version": "2.2.5",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build",
+		"prebuild": "prisma generate",
+		"build": "pnpm prebuild && vite build",
 		"package": "svelte-kit package",
 		"preview": "vite preview",
 		"test": "playwright test",
