@@ -208,7 +208,9 @@
 				</form>
 			{/if}
 			<div class="text-center px-5 underline hover:text-primary transition-colors">
-				<a href="https://raqueebuddinaziz.com">Made By Raqueebuddin Aziz</a>
+				<a target="_blank" rel="noreferrer" href="https://raqueebuddinaziz.com"
+					>Made By Raqueebuddin Aziz</a
+				>
 			</div>
 			<div class="text-center px-5">
 				Current Version: {__version__}
