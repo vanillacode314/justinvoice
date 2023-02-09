@@ -108,14 +108,13 @@ export function pullKeys<T extends Record<any, any> = any>(
 export const createFetcher = (
 	fetcher: (input: URL | RequestInfo, init?: RequestInit) => Promise<Response>
 ) =>
-	createZodFetcher((input, init?) =>
-		fetcher(input, init)
-			.then((res) => res.text())
-			.then((value) => devalue.parse(value))
-			.catch((error) => {
-				throw new Error(error)
-			})
-	)
+	createZodFetcher(async (input, init?) => {
+		const res = await fetcher(input, init)
+		if (!res.ok) throw new Error(`Response failed with status code ${res.status}`)
+		const value = await res.text()
+		console.log(value)
+		return devalue.parse(value)
+	})
 
 export const genId: (ids: bigint[]) => bigint = (ids = []) => {
 	let id = BigInt(Math.floor(Math.random() * Math.pow(10, 16)))
