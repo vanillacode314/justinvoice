@@ -71,7 +71,7 @@
 			}
 			$appState.drawerVisible = false
 			$createNewInvoiceModalOpen = false
-			await goto(`/app/invoice/${result.data.id}`)
+			await goto(`/app/invoice/${result2.data.id}`)
 		} finally {
 			processingCreation = false
 		}
