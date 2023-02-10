@@ -58,7 +58,13 @@ export const POST: RequestHandler = makeResultHandler(
 			}
 		})
 
-		cookies.set('session-id', sessionId, { path: '/' })
+		cookies.set('session-id', sessionId, {
+			path: '/',
+			secure: true,
+			httpOnly: true,
+			sameSite: 'lax',
+			maxAge: 1000 * 60 * 60 * 24 * 30
+		})
 		return send({
 			success: true,
 			data: {
