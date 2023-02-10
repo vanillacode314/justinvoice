@@ -121,7 +121,7 @@
 
 		if (userStateV1) {
 			userStateV1 = JSON.parse(userStateV1)
-			let ids: number[] = []
+			let ids: bigint[] = []
 			const addressMap = {} as Record<string, BigInt>
 			userStateV1.addressbook = userStateV1.addressbook.map((address: any) => {
 				const id = genId(ids)

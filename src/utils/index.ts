@@ -53,11 +53,11 @@ export function uniqByKey<T extends Record<string, unknown>>(array: T[], key: ke
 	)
 }
 
-export function diffByKey<T extends Record<string, unknown>>(
+export function diffByKey<T extends Record<string, unknown>, K extends keyof T>(
 	array1: T[],
-	array2: T[],
-	key: keyof T
-) {
+	array2: Pick<T, K>[],
+	key: K
+): T[] {
 	return array1.filter((value1) => !array2.some((value2) => value2[key] === value1[key]))
 }
 

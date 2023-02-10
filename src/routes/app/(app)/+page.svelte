@@ -73,7 +73,14 @@
 				<span>Create Invoice</span>
 			</button>
 			<h2 class="text-xl uppercase font-bold">Or</h2>
-			<button class="flex items-center gap-1 btn btn-success" on:click={importInvoices}>
+			<button
+				class="flex items-center gap-1 btn btn-success"
+				on:click={() => {
+					$loadingMessage = 'Importing'
+					$loading = true
+					importInvoices().finally(() => ($loading = false))
+				}}
+			>
 				<span class="i-mdi-import text-lg" />
 				<span>Import Invoices</span>
 			</button>

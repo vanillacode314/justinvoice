@@ -8,6 +8,7 @@ const sessionSchema = z.object({
 export const load: LayoutServerLoad = async ({ locals }) => {
 	return {
 		user: locals.user,
+		expired: locals.expired,
 		offlineMode: locals.offlineMode
 	}
 }

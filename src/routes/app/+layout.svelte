@@ -4,7 +4,7 @@
 	import { page } from '$app/stores'
 	import type { Writable } from 'svelte/store'
 
-	const user = setContext<Writable<number>>('user', writable($page.data.user))
+	const user = setContext<Writable<bigint | null>>('user', writable($page.data.user))
 	$: $user = $page.data.user
 </script>
 

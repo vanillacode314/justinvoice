@@ -10,8 +10,8 @@ const sessionSchema = z.object({
 })
 
 const AUTH_ROUTES = ['/register', '/login']
-export const load: LayoutLoad = async ({ depends, url, fetch }) => {
-	if (!browser) return
+export const load = (async ({ depends, url, fetch }) => {
+	if (!browser) return { user: null, expired: false }
 	const fetcher = createFetcher(fetch)
 
 	depends('offlineMode')
@@ -45,4 +45,4 @@ export const load: LayoutLoad = async ({ depends, url, fetch }) => {
 	}
 
 	return { user, expired }
-}
+}) satisfies LayoutLoad

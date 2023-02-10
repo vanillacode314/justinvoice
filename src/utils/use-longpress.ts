@@ -85,14 +85,16 @@ export const longpress = (
 	node.addEventListener('mouseout', onMouseUp)
 	node.addEventListener('mouseup', onMouseUp)
 
-	return () => {
-		node.removeEventListener('contextmenu', onContextMenu)
-		node.removeEventListener('touchstart', onTouchStart)
-		node.removeEventListener('touchmove', onTouchMove)
-		node.removeEventListener('touchend', onTouchEnd)
-		node.removeEventListener('touchcancel', onTouchEnd)
-		node.removeEventListener('mousedown', onMouseDown)
-		node.removeEventListener('mouseout', onMouseUp)
-		node.removeEventListener('mouseup', onMouseUp)
+	return {
+		destroy() {
+			node.removeEventListener('contextmenu', onContextMenu)
+			node.removeEventListener('touchstart', onTouchStart)
+			node.removeEventListener('touchmove', onTouchMove)
+			node.removeEventListener('touchend', onTouchEnd)
+			node.removeEventListener('touchcancel', onTouchEnd)
+			node.removeEventListener('mousedown', onMouseDown)
+			node.removeEventListener('mouseout', onMouseUp)
+			node.removeEventListener('mouseup', onMouseUp)
+		}
 	}
 }

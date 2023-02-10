@@ -5,6 +5,7 @@
 <script lang="ts">
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { appState } from '$/stores'
 	import { entitySchema } from '$/types'
 
@@ -19,9 +20,14 @@
 	async function onSubmit(e: SubmitEvent) {
 		e.preventDefault()
 		processing = true
-		const { name, address } = entitySchema.parse(formData)
-		const { id } = await addAddress(name, address).finally(() => (processing = false))
-		Object.assign($appState, { selectedAddressId: id, drawerVisible: false })
+		const result = await addAddress(entitySchema.parse(formData)).finally(
+			() => (processing = false)
+		)
+		if (!result.success) {
+			toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			return
+		}
+		Object.assign($appState, { selectedAddressId: result.data.id, drawerVisible: false })
 		$appState = $appState
 		$addNewAddressModalOpen = false
 	}

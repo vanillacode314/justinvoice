@@ -31,14 +31,12 @@
 
 	async function onSubmit(e: SubmitEvent) {
 		e.preventDefault()
-		processingEdit = true
 		if ($userState.addressbook.length < 2) {
 			toast(
 				'INVALID_DATA',
 				'You must have at least two addresses before you can create an invoice.',
 				{ type: 'error', duration: 5000 }
 			)
-			processingEdit = false
 			return
 		}
 		const schema = formSchema
@@ -57,10 +55,13 @@
 				for (const error of result.error.errors) {
 					toast('INVALID_DATA', error.message, { type: 'error', duration: 5000 })
 				}
-				processingEdit = false
 				return
 			}
-			await editInvoice(result.data).finally(() => (processingEdit = false))
+			processingEdit = true
+			const result2 = await editInvoice(result.data).finally(() => (processingEdit = false))
+			if (!result2.success) {
+				toast(result2.error.code, result2.error.message, { type: 'error', duration: 5000 })
+			}
 		}
 		$editInvoiceModalOpen = false
 		$appState.drawerVisible = false

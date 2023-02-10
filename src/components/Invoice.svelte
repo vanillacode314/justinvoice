@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { userState } from '$/stores'
-	import type { TInvoice } from '$/types'
 
 	/// STATE ///
 	export let id: TInvoice['id']

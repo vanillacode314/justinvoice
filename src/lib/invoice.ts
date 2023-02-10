@@ -1,3 +1,4 @@
+import { toast } from '$/components/base/Toast.svelte'
 import { alert } from '$/modals/AlertModal.svelte'
 import { offlineMode, userState, userStateSchema } from '$/stores'
 import { invoiceItemLogSchema, invoiceSchema, resultSchema } from '$/types'
@@ -5,201 +6,242 @@ import { z } from 'zod'
 
 const fetcher = createFetcher(fetch)
 
-export async function createInvoice(invoice: TInvoice): Promise<TInvoice> {
-	let newInvoice: TInvoice
-	const $offlineMode = get(offlineMode)
-
-	if ($offlineMode) {
-		const id = genId(get(userState).invoices.map(({ id }) => id))
-		newInvoice = { ...invoice, id }
-	} else {
-		const result = await fetcher(resultSchema(invoiceSchema), '/api/v1/private/invoices', {
+export const createInvoice = updateData({
+	offlineCallback(invoice: TInvoice) {
+		try {
+			return {
+				success: true,
+				data: { ...invoice, id: genId(get(userState).invoices.map(({ id }) => id)) }
+			}
+		} catch {
+			return {
+				success: false,
+				error: {
+					code: 'ERROR_OFFLINE_CALLBACK',
+					message: 'Offline callback error'
+				}
+			}
+		}
+	},
+	async onlineCallback(invoice: TInvoice) {
+		return await fetcher(resultSchema(invoiceSchema), '/api/v1/private/invoices', {
 			method: 'POST',
 			body: buildFormData(invoice)
 		})
-
-		if (!result.success) throw new Error(JSON.stringify(result.error))
-		newInvoice = result.data
+	},
+	updateCallback(invoice: TInvoice) {
+		userState.update(($userState) => {
+			const { invoices } = $userState
+			invoices.push(invoice)
+			return $userState
+		})
+		return {
+			success: true,
+			data: invoice
+		}
 	}
+})
 
-	userState.update(($userState) => {
-		const { invoices } = $userState
-		invoices.push(newInvoice)
-		return $userState
-	})
-	return newInvoice
-}
+export const editInvoice = updateData({
+	offlineCallback(invoice: TInvoice) {
+		return {
+			success: true,
+			data: invoice
+		}
+	},
 
-export async function editInvoice(invoice: TInvoice): Promise<TInvoice> {
-	let newInvoice: TInvoice
-	const $offlineMode = get(offlineMode)
+	async onlineCallback(invoice: TInvoice) {
+		return await fetcher(resultSchema(invoiceSchema), '/api/v1/private/invoices/' + invoice.id, {
+			method: 'PUT',
+			body: buildFormData(invoice)
+		})
+	},
+	updateCallback(invoice: TInvoice) {
+		userState.update(($userState) => {
+			const { invoices } = $userState
+			const _invoice = invoices.find((_invoice) => invoice.id === _invoice.id)
+			if (_invoice) {
+				Object.assign(_invoice, invoice)
+			}
+			return $userState
+		})
+		return {
+			success: true,
+			data: invoice
+		}
+	}
+})
 
-	if ($offlineMode) {
-		newInvoice = invoice
-	} else {
+export const removeInvoice = updateData({
+	offlineCallback(ids: TInvoice['id'][]) {
+		return {
+			success: true,
+			data: ids
+		}
+	},
+	async onlineCallback(ids: TInvoice['id'][]) {
 		const result = await fetcher(
-			resultSchema(invoiceSchema),
-			'/api/v1/private/invoices/' + invoice.id,
+			resultSchema(z.object({ count: z.number() })),
+			`/api/v1/private/invoices/${ids.join(',')}`,
 			{
-				method: 'PUT',
-				body: buildFormData(invoice)
+				method: 'DELETE'
 			}
 		)
-
-		if (!result.success) throw new Error(JSON.stringify(result.error))
-		newInvoice = result.data
-	}
-
-	userState.update(($userState) => {
-		const { invoices } = $userState
-		const _invoice = invoices.find((_invoice) => invoice.id === _invoice.id)
-		if (_invoice) {
-			Object.assign(_invoice, newInvoice)
+		if (!result.success) result
+		return {
+			success: true,
+			data: ids
 		}
-		return $userState
-	})
-	return newInvoice
-}
-
-export async function removeInvoice(id: TInvoice['id']) {
-	const $offlineMode = get(offlineMode)
-	if (!$offlineMode) {
-		await fetcher(resultSchema(z.object({ count: z.number() })), `/api/v1/private/invoices/${id}`, {
-			method: 'DELETE'
+	},
+	updateCallback(ids: TInvoice['id'][]) {
+		userState.update(($userState) => {
+			const { invoices } = $userState
+			if (ids.length === 1) {
+				const id = ids[0]
+				removeInPlace(invoices, (invoice) => invoice.id === id)
+			} else {
+				filterInPlace(invoices, (invoice) => !ids.includes(invoice.id))
+			}
+			return $userState
 		})
+		return {
+			success: true,
+			data: {}
+		}
 	}
+})
 
-	userState.update(($userState) => {
-		const { invoices } = $userState
-		removeInPlace(invoices, (invoice) => invoice.id === id)
-		return $userState
-	})
-}
-
-export async function removeLogs(invoiceId: TInvoice['id'], ids: TInvoiceItemLog['id'][]) {
-	if (ids.length === 0) return
-	const $offlineMode = get(offlineMode)
-	if (!$offlineMode) {
-		await fetcher(
+export const removeLogs = updateData({
+	offlineCallback(invoiceId: TInvoice['id'], ids: TInvoiceItemLog['id'][]) {
+		return {
+			success: true,
+			data: {
+				invoiceId,
+				ids
+			}
+		}
+	},
+	async onlineCallback(invoiceId: TInvoice['id'], ids: TInvoiceItemLog['id'][]) {
+		const result = await fetcher(
 			resultSchema(invoiceItemLogSchema),
 			`/api/v1/private/invoices/${invoiceId}/logs/${ids.join(',')}`,
 			{ method: 'DELETE' }
 		)
-	}
-
-	userState.update((val) => {
-		const { invoices } = val
-		const invoice = invoices.find(({ id }) => id === invoiceId)
-		if (!invoice) return val
-		if (ids.length === 1) {
-			const id = ids[0]
-			removeInPlace(invoice.logs, (item) => item.id === id)
-		} else {
-			filterInPlace(invoice.logs, (item) => !ids.includes(item.id))
+		if (!result.success) return result
+		return {
+			success: true,
+			data: {
+				invoiceId,
+				ids
+			}
 		}
-		return val
-	})
-}
-
-export async function addLog(
-	invoiceId: TInvoice['id'],
-	title: TInvoiceItemLog['title'],
-	type: TInvoiceItemLog['type'],
-	cost: TInvoiceItemLog['cost'],
-	qty: TInvoiceItemLog['qty'],
-	description: TInvoiceItemLog['description'] = ''
-) {
-	const $offlineMode = get(offlineMode)
-	let log: TInvoiceItemLog
-	if ($offlineMode) {
-		const id = genId(
-			get(userState).invoices.flatMap((invoice) => invoice.logs.map((log) => log.id))
-		)
-		log = invoiceItemLogSchema.parse({
-			id,
-			title,
-			type,
-			cost,
-			description,
-			qty
+	},
+	updateCallback({ invoiceId, ids }) {
+		userState.update(($userState) => {
+			const { invoices } = $userState
+			const invoice = invoices.find(({ id }) => id === invoiceId)
+			if (!invoice) return $userState
+			if (ids.length === 1) {
+				const id = ids[0]
+				removeInPlace(invoice.logs, (item) => item.id === id)
+			} else {
+				filterInPlace(invoice.logs, (item) => !ids.includes(item.id))
+			}
+			return $userState
 		})
-	} else {
+		return {
+			success: true,
+			data: {}
+		}
+	}
+})
+
+export const addLogs = updateData({
+	offlineCallback(invoiceId: TInvoice['id'], log: TInvoiceItemLog) {
+		return {
+			success: true,
+			data: {
+				invoiceId,
+				log
+			}
+		}
+	},
+	async onlineCallback(invoiceId: TInvoice['id'], log: TInvoiceItemLog) {
 		const result = await fetcher(
 			resultSchema(invoiceItemLogSchema),
 			`/api/v1/private/invoices/${invoiceId}/logs`,
 			{
 				method: 'POST',
-				body: buildFormData({
-					title,
-					type,
-					cost,
-					qty,
-					description
-				})
+				body: buildFormData(log)
 			}
 		)
-
-		if (!result.success) throw new Error(JSON.stringify(result.error))
-		log = result.data
-	}
-	userState.update((val) => {
-		const { invoices } = val
-		const invoice = invoices.find(({ id }) => id === invoiceId)
-		if (invoice) {
-			invoice.logs.push(log)
+		if (!result.success) return result
+		return {
+			success: true,
+			data: {
+				invoiceId,
+				log
+			}
 		}
-		return val
-	})
-	return log
-}
-export async function editLog(
-	invoiceId: TInvoice['id'],
-	logId: TInvoiceItemLog['id'],
-	title: TInvoiceItemLog['title'],
-	type: TInvoiceItemLog['type'],
-	cost: TInvoiceItemLog['cost'],
-	qty: TInvoiceItemLog['qty'],
-	description: TInvoiceItemLog['description'] = ''
-) {
-	const $offlineMode = get(offlineMode)
-	let log: TInvoiceItemLog
-	if ($offlineMode) {
-		log = invoiceItemLogSchema.parse({
-			id: logId,
-			title,
-			type,
-			cost,
-			description,
-			qty
+	},
+	updateCallback({ invoiceId, log }) {
+		userState.update(($userState) => {
+			const { invoices } = $userState
+			const invoice = invoices.find(({ id }) => id === invoiceId)
+			if (invoice) {
+				invoice.logs.push(log)
+			}
+			return $userState
 		})
-	} else {
+		return {
+			success: true,
+			data: log
+		}
+	}
+})
+
+export const editLog = updateData({
+	offlineCallback(invoiceId: TInvoiceItemLog['id'], log: TInvoiceItemLog) {
+		return {
+			success: true,
+			data: {
+				invoiceId,
+				log
+			}
+		}
+	},
+	async onlineCallback(invoiceId: TInvoiceItemLog['id'], log: TInvoiceItemLog) {
 		const result = await fetcher(
 			resultSchema(invoiceItemLogSchema),
-			`/api/v1/private/invoices/${invoiceId}/logs/${logId}`,
+			`/api/v1/private/invoices/${invoiceId}/logs/${log.id}`,
 			{
 				method: 'PUT',
-				body: buildFormData({
-					title,
-					type,
-					cost,
-					qty,
-					description
-				})
+				body: buildFormData(log)
 			}
 		)
-
-		if (!result.success) throw new Error(JSON.stringify(result.error))
-		log = result.data
+		if (!result.success) return result
+		return {
+			success: true,
+			data: {
+				invoiceId,
+				log
+			}
+		}
+	},
+	updateCallback({ invoiceId, log }) {
+		userState.update(($userState) => {
+			const { invoices } = $userState
+			const invoice = invoices.find(({ id }) => id === invoiceId)
+			if (!invoice) return $userState
+			Object.assign(invoice.logs.find(({ id }) => id === log.id) || {}, log)
+			return $userState
+		})
+		return {
+			success: true,
+			data: log
+		}
 	}
-	userState.update(($userState) => {
-		const { invoices } = $userState
-		const invoice = invoices.find(({ id }) => id === invoiceId)
-		if (!invoice) return $userState
-		Object.assign(invoice.logs.find(({ id }) => id === logId) || {}, log)
-		return $userState
-	})
-	return log
-}
+})
 
 export async function exportAll(filename: string = 'justinvoices') {
 	const $offlineMode = get(offlineMode)
@@ -208,7 +250,10 @@ export async function exportAll(filename: string = 'justinvoices') {
 			resultSchema(userStateSchema.pick({ invoices: true, addressbook: true })),
 			'/api/v1/private/invoices?' + buildQueryString({ includeLogs: true, archived: null })
 		)
-		if (!result.success) throw new Error(JSON.stringify(result.error))
+		if (!result.success) {
+			toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			throw new Error(`${result.error.code}: ${result.error.message}`)
+		}
 		userState.update(($userState) => Object.assign($userState, result.data))
 	}
 	const dateString = new Date().toLocaleString(navigator.language, {
@@ -271,7 +316,10 @@ export async function importInvoices() {
 			method: 'POST',
 			body: buildFormData(importedData)
 		})
-		if (!result.success) throw new Error(JSON.stringify(result.error))
+		if (!result.success) {
+			toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			throw new Error(`${result.error.code}: ${result.error.message}`)
+		}
 	}
 
 	userState.update((val) => {

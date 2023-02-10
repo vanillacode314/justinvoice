@@ -41,6 +41,7 @@
 			processingCreation = false
 			return
 		}
+
 		const schema = formSchema
 			.refine((data) => data.senderId !== -1n, { message: 'Choose a sender' })
 			.refine((data) => data.recipientId !== -1n, { message: 'Choose a recipient' })
@@ -51,8 +52,8 @@
 					message: 'Recipient and Sender cannot be same'
 				}
 			)
-		const result = schema.safeParse(formData)
 
+		const result = schema.safeParse(formData)
 		if (!result.success) {
 			for (const error of result.error.errors) {
 				toast('INVALID_DATA', error.message, { type: 'error', duration: 5000 })
@@ -61,12 +62,16 @@
 			return
 		}
 
-		const data = result.data
 		try {
-			const { id } = await createInvoice(result.data)
+			const result2 = await createInvoice(result.data)
+			if (!result2.success) {
+				toast(result2.error.code, result2.error.message, { type: 'error', duration: 5000 })
+				processingCreation = false
+				return
+			}
 			$appState.drawerVisible = false
 			$createNewInvoiceModalOpen = false
-			await goto(`/app/invoice/${id}`)
+			await goto(`/app/invoice/${result.data.id}`)
 		} finally {
 			processingCreation = false
 		}

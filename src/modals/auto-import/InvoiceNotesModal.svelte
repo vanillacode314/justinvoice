@@ -6,6 +6,7 @@
 	import Button from '$/components/base/Button.svelte'
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { appState, userState } from '$/stores'
 
 	$: invoice = $userState.invoices.find((invoice) => invoice.id === $appState.selectedInvoiceId)
@@ -21,7 +22,10 @@
 		e.preventDefault()
 		processing = true
 		if (invoice) {
-			await editInvoice({ ...invoice, notes }).finally(() => (processing = false))
+			const result = await editInvoice({ ...invoice, notes }).finally(() => (processing = false))
+			if (!result.success) {
+				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			}
 		}
 		$invoiceNotesModalOpen = false
 	}

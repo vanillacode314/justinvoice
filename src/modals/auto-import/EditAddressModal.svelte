@@ -6,6 +6,7 @@
 	import Button from '$/components/base/Button.svelte'
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { appState, userState } from '$/stores'
 	import { entitySchema } from '$/types'
 
@@ -23,10 +24,11 @@
 		e.preventDefault()
 		processingEdit = true
 		if ($appState.selectedAddressId) {
-			const { name, address } = entitySchema.parse(formData)
-			await editAddress($appState.selectedAddressId, name, address).finally(
-				() => (processingEdit = false)
-			)
+			const address = entitySchema.parse({ ...formData, id: $appState.selectedAddressId })
+			const result = await editAddress(address).finally(() => (processingEdit = false))
+			if (!result.success) {
+				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			}
 		}
 		$editAddressModalOpen = false
 		$appState.drawerVisible = false

@@ -7,12 +7,12 @@
 	<h1 class="uppercase font-bold text-3xl tracking-wide">An Error Occurred</h1>
 	<Button
 		{processing}
-		processingLabel="Retrying"
+		processingLabel="Going Home"
 		on:click={() => (processing = true)}
 		href="/app"
 		icon="i-mdi-arrow-back"
 		class="btn-lg btn-primary"
 	>
-		Retry
+		Go Home
 	</Button>
 </main>

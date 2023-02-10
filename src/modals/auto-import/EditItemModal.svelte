@@ -6,6 +6,7 @@
 	import Button from '$/components/base/Button.svelte'
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { appState, userState } from '$/stores'
 	import { invoiceItemLogSchema } from '$/types'
 
@@ -22,18 +23,15 @@
 
 	async function onSubmit(e: SubmitEvent) {
 		e.preventDefault()
-		processingEdit = true
 		if ($appState.selectedInvoiceId && $appState.selectedItemId) {
-			const { qty, cost, type, title, description } = invoiceItemLogSchema.parse(formData)
-			await editLog(
-				$appState.selectedInvoiceId,
-				$appState.selectedItemId,
-				title,
-				type,
-				cost,
-				qty,
-				description
-			).finally(() => (processingEdit = false))
+			const entity = invoiceItemLogSchema.parse(formData)
+			processingEdit = true
+			const result = await editLog($appState.selectedInvoiceId, entity).finally(
+				() => (processingEdit = false)
+			)
+			if (!result.success) {
+				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			}
 		}
 		$editItemModalOpen = false
 		$appState.drawerVisible = false

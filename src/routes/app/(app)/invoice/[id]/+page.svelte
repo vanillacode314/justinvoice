@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toast } from '$/components/base/Toast.svelte'
 	import Item from '$/components/Item.svelte'
 	import { alert } from '$/modals/AlertModal.svelte'
 	import { addNewItemModalOpen } from '$/modals/auto-import/AddNewItemModal.svelte'
@@ -43,7 +44,7 @@
 	}
 
 	async function deleteInvoice() {
-		await removeInvoice(id)
+		await removeInvoice([id])
 		await goto('/app')
 	}
 
@@ -79,10 +80,12 @@
 		const inp = e.currentTarget as HTMLInputElement
 		const { checked } = inp
 		inp.indeterminate = true
-		await editInvoice(Object.assign(invoice, { paid: checked })).finally(
+		const result = await editInvoice({ ...invoice, paid: checked }).finally(
 			() => (inp.indeterminate = false)
 		)
-		$userState = $userState
+		if (!result.success) {
+			toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+		}
 	}
 
 	function print() {
@@ -290,11 +293,14 @@
 	on:confirm={(e) => {
 		e.detail(async () => {
 			if (!invoice) return
-			await removeLogs(
+			const result = await removeLogs(
 				id,
 				getSelectedFromArray(invoice.logs, selectedItems).map((address) => address.id)
 			)
-			selectedItems.fill(false)
+			if (!result.success) {
+				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			}
+			selectedItems = selectedItems.fill(false)
 		})
 	}}
 	bind:open={deleteItemsModalOpen}

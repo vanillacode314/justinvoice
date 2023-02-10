@@ -16,10 +16,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const offlineMode = Boolean(event.url.searchParams.get('offlineMode'))
 	if (offlineMode) {
 		event.locals.user = null
+		event.locals.expired = false
 		event.locals.offlineMode = true
 	} else {
 		const sessionId = event.cookies.get('session-id')
-		const { user } = await checkSession(sessionId)
+		const { expired, user } = await checkSession(sessionId)
+		event.locals.expired = expired
 		if (user === null && sessionId) {
 			event.cookies.delete('session-id')
 		}

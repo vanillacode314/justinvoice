@@ -45,8 +45,10 @@ export const invoiceSchema = z.object({
 	notes: z.string().trim().default('')
 })
 
-export function resultSchema<TData extends z.ZodTypeAny>(dataSchema: TData) {
-	return z.discriminatedUnion('success', [
+export function resultSchema<TData extends z.ZodTypeAny, U extends z.infer<TData>>(
+	dataSchema: TData
+) {
+	const schema = z.discriminatedUnion('success', [
 		z.object({
 			success: z.literal(true),
 			data: dataSchema
@@ -55,10 +57,14 @@ export function resultSchema<TData extends z.ZodTypeAny>(dataSchema: TData) {
 			success: z.literal(false),
 			error: z.object({
 				code: z.string(),
-				message: z.any()
+				message: z.string()
 			})
 		})
 	])
+	return {
+		...schema,
+		parse: schema.parse as (...args: Parameters<typeof schema.parse>) => TResult<U>
+	}
 }
 
 declare global {
@@ -66,7 +72,19 @@ declare global {
 	type ArrayValues<T extends Readonly<Array<any>>> = T[number]
 	type TSession = z.infer<typeof sessionSchema>
 	type TEntity = z.infer<typeof entitySchema>
-	type TResult<T> = z.infer<ReturnType<typeof resultSchema<z.ZodType<T>>>>
+	type TResult<T> =
+		| {
+				readonly success: true
+				data: T
+		  }
+		| {
+				readonly success: false
+				readonly error: {
+					readonly code: string
+					readonly message: string
+				}
+		  }
 	type TInvoiceItemLog = z.infer<typeof invoiceItemLogSchema>
 	type TInvoice = z.infer<typeof invoiceSchema>
+	type MaybePromise<T> = Promise<T> | T
 }

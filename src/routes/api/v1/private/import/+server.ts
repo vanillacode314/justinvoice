@@ -31,9 +31,10 @@ export const POST = makeResultHandler(
 		if (!result.success) {
 			return send(result)
 		}
+		const [INVOICES, ADDRESSBOOK] = [0, 1] as const
 		const _data = result.data
-		filterInPlace(invoices, (invoice) => !_data[0].some(({ id }) => invoice.id === id))
-		filterInPlace(addressbook, (address) => !_data[1].some(({ id }) => address.id === id))
+		filterInPlace(invoices, (invoice) => !_data[INVOICES].some(({ id }) => invoice.id === id))
+		filterInPlace(addressbook, (address) => !_data[ADDRESSBOOK].some(({ id }) => address.id === id))
 		result = await handleTransaction(() =>
 			db
 				.$transaction([

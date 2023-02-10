@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Address from '$/components/Address.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { actionSchema, appState, userState } from '$/stores'
@@ -100,10 +101,13 @@
 	message="Are you sure, you would like to delete all selected addresses and the invoices which use them?"
 	on:confirm={async (e) => {
 		e.detail(async () => {
-			await removeAddresses(
+			const result = await removeAddresses(
 				getSelectedFromArray($userState.addressbook, selectedAddresses).map(({ id }) => id)
 			)
-			selectedAddresses.fill(false)
+			if (!result.success) {
+				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			}
+			selectedAddresses = selectedAddresses.fill(false)
 		})
 	}}
 />

@@ -25,15 +25,18 @@
 		const result = invoiceItemLogSchema.safeParse(formData)
 		if (!result.success) {
 			for (const error of result.error.errors) {
-				toast('Invalid Data', error.message, { type: 'error', duration: 5000 })
+				toast('INVALID_DATA', error.message, { type: 'error', duration: 5000 })
 			}
 			processingCreation = false
 			return
 		}
-		const { title, type, cost, qty, description } = result.data
-		await addLog($appState.selectedInvoiceId, title, type, cost, qty, description).finally(
+		const result2 = await addLogs($appState.selectedInvoiceId, result.data).finally(
 			() => (processingCreation = false)
 		)
+		if (!result2.success) {
+			toast(result2.error.code, result2.error.message, { type: 'error', duration: 5000 })
+			return
+		}
 		$addNewItemModalOpen = false
 	}
 </script>
