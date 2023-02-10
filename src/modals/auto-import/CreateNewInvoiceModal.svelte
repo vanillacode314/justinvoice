@@ -110,7 +110,7 @@
 				name="sender"
 				label="Sender's Address"
 				value={String(formData.senderId)}
-				on:change={(e) => {
+				on:input={(e) => {
 					formData.senderId = e.currentTarget.value ? BigInt(e.currentTarget.value) : -1n
 				}}
 				options={[
@@ -133,7 +133,7 @@
 				name="recipient"
 				id="invoice-recipient"
 				value={String(formData.recipientId)}
-				on:change={(e) => {
+				on:input={(e) => {
 					formData.recipientId = e.currentTarget.value ? BigInt(e.currentTarget.value) : -1n
 				}}
 				options={[

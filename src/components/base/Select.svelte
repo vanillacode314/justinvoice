@@ -10,7 +10,7 @@
 	}
 
 	interface $$Events {
-		change: Parameters<ChangeEventHandler<HTMLSelectElement>>[0]
+		input: Parameters<ChangeEventHandler<HTMLSelectElement>>[0]
 	}
 
 	const optionsSchema = z.object({
@@ -37,7 +37,7 @@
 			{id}
 			class="select rounded-xl select-bordered w-full invalid:select-error"
 			bind:value
-			on:change
+			on:input
 			{...$$restProps}
 		>
 			{#each optionsSchema.array().parse(options) as { selected, disabled, label, value } (value)}

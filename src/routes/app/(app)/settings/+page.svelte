@@ -71,7 +71,7 @@
 		id="invoice-sender"
 		name="sender"
 		value={formData.defaultSender ? String(formData.defaultSender) : ''}
-		on:change={(e) => {
+		on:input={(e) => {
 			formData.defaultSender = e.currentTarget.value ? BigInt(e.currentTarget.value) : null
 			onChange()
 		}}
