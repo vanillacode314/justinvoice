@@ -29,51 +29,51 @@
 		{
 			href: '/app',
 			title: 'Invoice',
-			icon: 'i-mdi-document',
-			actions: [
-				{
-					clickHandler: () => ($createNewInvoiceModalOpen = true),
-					title: 'Create New Invoice',
-					icon: 'i-mdi-add'
-				},
-				{
-					clickHandler: async () => {
-						const name = await prompt({
-							icon: 'i-mdi-export',
-							title: 'Export Invoices',
-							message: 'Enter filename (timestamp will be auto appended to the name):',
-							initialValue: `justinvoices`
-						})
-						if (!name) return
-						$loadingMessage = 'Exporting'
-						$loading = true
-						await exportAll(name).finally(() => ($loading = false))
-					},
-					title: 'Export All Invoices',
-					icon: 'i-mdi-export'
-				},
-				{
-					clickHandler: () => {
-						$loadingMessage = 'Importing'
-						$loading = true
-						importInvoices().finally(() => ($loading = false))
-					},
-					title: 'Import Invoice(s)',
-					icon: 'i-mdi-import'
-				}
-			]
+			icon: 'i-mdi-document'
+			/* actions: [ */
+			/* 	{ */
+			/* 		clickHandler: () => ($createNewInvoiceModalOpen = true), */
+			/* 		title: 'Create New Invoice', */
+			/* 		icon: 'i-mdi-add' */
+			/* 	}, */
+			/* 	{ */
+			/* 		clickHandler: async () => { */
+			/* 			const name = await prompt({ */
+			/* 				icon: 'i-mdi-export', */
+			/* 				title: 'Export Invoices', */
+			/* 				message: 'Enter filename (timestamp will be auto appended to the name):', */
+			/* 				initialValue: `justinvoices` */
+			/* 			}) */
+			/* 			if (!name) return */
+			/* 			$loadingMessage = 'Exporting' */
+			/* 			$loading = true */
+			/* 			await exportAll(name).finally(() => ($loading = false)) */
+			/* 		}, */
+			/* 		title: 'Export All Invoices', */
+			/* 		icon: 'i-mdi-export' */
+			/* 	}, */
+			/* 	{ */
+			/* 		clickHandler: () => { */
+			/* 			$loadingMessage = 'Importing' */
+			/* 			$loading = true */
+			/* 			importInvoices().finally(() => ($loading = false)) */
+			/* 		}, */
+			/* 		title: 'Import Invoice(s)', */
+			/* 		icon: 'i-mdi-import' */
+			/* 	} */
+			/* ] */
 		},
 		{
 			href: '/app/addressbook',
 			title: 'Address Book',
-			icon: 'i-mdi-user',
-			actions: [
-				{
-					clickHandler: () => ($addNewAddressModalOpen = true),
-					title: 'Add New Address',
-					icon: 'i-mdi-add'
-				}
-			]
+			icon: 'i-mdi-user'
+			/* actions: [ */
+			/* 	{ */
+			/* 		clickHandler: () => ($addNewAddressModalOpen = true), */
+			/* 		title: 'Add New Address', */
+			/* 		icon: 'i-mdi-add' */
+			/* 	} */
+			/* ] */
 		},
 		{
 			href: '/app/settings',
