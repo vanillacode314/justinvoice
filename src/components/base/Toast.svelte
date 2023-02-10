@@ -20,7 +20,7 @@
 	): Message {
 		const message = {
 			id: crypto.randomUUID(),
-			title,
+			title: title.replace(/_/g, ' '),
 			content,
 			type
 		}
