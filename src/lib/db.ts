@@ -26,4 +26,4 @@ export async function handleTransaction<TReturnType, TResultSchema = TResult<TRe
 }
 
 export const dbDateSchema = z.date().transform((date) => date.getTime())
-export const dbDecimalSchema = z.instanceof(Decimal).transform((date) => +date.valueOf())
+export const dbDecimalSchema = z.instanceof(Decimal).transform((num) => +num.valueOf())
