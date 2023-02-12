@@ -6,6 +6,10 @@ const HTTP_STATUS_CODES = [
 	417, 418, 421, 422, 423, 424, 425, 426, 428, 429, 431, 451, 500, 501, 502, 503, 504, 505, 506,
 	507, 508, 510, 511
 ] satisfies Array<number>
+const httpStatusCodeSchema = z.number().refine((val) => HTTP_STATUS_CODES.includes(val), {
+	message: 'Status code must be one of ' + HTTP_STATUS_CODES.join(', ')
+})
+
 export const sessionSchema = z.object({
 	expired: z.boolean(),
 	user: z.bigint().nullable()
@@ -62,7 +66,9 @@ export function resultSchema<TData extends z.ZodTypeAny, U extends z.infer<TData
 		z.object({
 			success: z.literal(false),
 			error: z.object({
-				code: z.string().regex(/^[A-Z_]+$/),
+				code: z.string().regex(/^[A-Z_]+$/, {
+					message: 'Error code must be uppercase and only contain letters or underscores'
+				}),
 				message: z.string()
 			})
 		})
@@ -79,17 +85,16 @@ export function fetchSchema<TData extends z.ZodTypeAny, U extends z.infer<TData>
 	const schema = z.discriminatedUnion('success', [
 		z.object({
 			success: z.literal(true),
+			statusCode: httpStatusCodeSchema,
 			data: dataSchema
 		}),
 		z.object({
 			success: z.literal(false),
+			statusCode: httpStatusCodeSchema,
 			error: z.object({
-				statusCode: z
-					.number()
-					.refine((val) => HTTP_STATUS_CODES.includes(val), {
-						message: 'Status code must be one of ' + HTTP_STATUS_CODES.join(', ')
-					}),
-				code: z.number(),
+				code: z.string().regex(/^[A-Z_]+$/, {
+					message: 'Error code must be uppercase and only contain letters or underscores'
+				}),
 				message: z.string()
 			})
 		})

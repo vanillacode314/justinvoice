@@ -42,7 +42,19 @@ export const GET: RequestHandler = makeResultHandler(
 				addressbook: invoices.flatMap((invoice) => [invoice.sender, invoice.recipient])
 			}
 		})
-		return send(result, { statusCode: result.success ? 200 : 500 })
+		if (!result.success) return send(result, { statusCode: 500 })
+		if (result.data.invoices.length === 0)
+			return send(
+				{
+					success: false,
+					error: {
+						code: 'INVOICE_NOT_FOUND',
+						message: `No invoices found for ids: ${ids.join(',')}`
+					}
+				},
+				{ statusCode: 404 }
+			)
+		return send(result, { statusCode: 200 })
 	}
 )
 

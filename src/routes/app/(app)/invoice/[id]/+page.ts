@@ -18,7 +18,7 @@ export const load = (async ({ url, params, fetch }) => {
 	try {
 		id = BigInt(params.id)
 	} catch {
-		throw error(400, { message: 'Invalid Invoice ID' })
+		throw error(400, { message: 'Invalid Invoice ID: ' + params.id, code: 'INVALID_INVOICE_ID' })
 	}
 
 	if ($offlineMode)
@@ -30,27 +30,14 @@ export const load = (async ({ url, params, fetch }) => {
 			}
 		})
 
-	try {
-		const result = await fetcher(
-			dataSchema,
-			`/api/v1/private/invoices/${id}?` +
-				buildQueryString({
-					includeLogs: true,
-					archived: null
-				}),
-			{
-				credentials: 'omit'
-			}
-		)
-		if (!result.success) throw error(500, result.error)
-		return result
-	} catch {
-		return send({
-			success: false,
-			error: {
-				code: 'C',
-				message: ''
-			}
-		})
-	}
+	const result = await fetcher(
+		dataSchema,
+		`/api/v1/private/invoices/${id}?` +
+			buildQueryString({
+				includeLogs: true,
+				archived: null
+			})
+	)
+	if (!result.success) throw error(result.statusCode, result.error)
+	return send(result)
 }) satisfies PageLoad

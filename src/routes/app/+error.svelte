@@ -3,11 +3,13 @@
 	import { page } from '$app/stores'
 	let processing: boolean = false
 
-	$: error = $page.error!
+	$: error = $page.error! 
 </script>
 
 <main class="p-10 grid h-full place-content-center gap-5 justify-items-center">
-	<h1 class="uppercase font-bold text-3xl tracking-wide">An Error Occurred</h1>
+	<h1 class="uppercase font-bold text-3xl tracking-wide">
+		{error.code.replace(/_/g, ' ') || 'An Error Occurred'}
+	</h1>
 	<p class="font-medium text-xl">{error.message}</p>
 	<Button
 		{processing}

@@ -14,6 +14,10 @@ declare namespace App {
 		user: bigint | null
 		expired: boolean
 	}
+	interface Error {
+		code: string
+		message: string
+	}
 	// interface Platform {}
 	// interface Session {}
 	// interface Stuff {}
