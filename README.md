@@ -2,7 +2,7 @@
 
 > A Free and Open source Invoice Manager.
 
-[https://justinvoice.netlify.app/](https://justinvoice.netlify.app/)
+[https://justinvoice.netlify.app/app](https://justinvoice.netlify.app/app)
 
 ## Developing
 
