@@ -31,6 +31,6 @@ export const POST = makeResultHandler(
 				}
 			})
 		)
-		return send(result, { statusCode: result.success ? 200 : 500 })
+		return send(result, { statusCode: result.success ? 201 : 500 })
 	}
 )
