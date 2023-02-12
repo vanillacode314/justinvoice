@@ -18,8 +18,7 @@
 
 	onMount(() => {
 		if (!$offlineMode && $page.data.success) {
-			Object.assign($userState, $page.data.data)
-			$userState = $userState
+			$userState = Object.assign($userState, $page.data.data)
 		}
 		setTimeout(() => {
 			window.onfocus = () => window.close()

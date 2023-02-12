@@ -17,8 +17,7 @@
 	}))
 
 	function onChange() {
-		Object.assign($settings, settingsSchema.parse(formData))
-		$settings = $settings
+		$settings = Object.assign($settings, settingsSchema.parse(formData))
 	}
 
 	async function clearData() {

@@ -27,8 +27,10 @@
 			toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
 			return
 		}
-		Object.assign($appState, { selectedAddressId: result.data.id, drawerVisible: false })
-		$appState = $appState
+		$appState = Object.assign($appState, {
+			selectedAddressId: result.data.id,
+			drawerVisible: false
+		})
 		$addNewAddressModalOpen = false
 	}
 </script>
