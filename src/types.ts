@@ -1,5 +1,11 @@
 import { z } from 'zod'
 
+const HTTP_STATUS_CODES = [
+	100, 101, 102, 200, 201, 202, 203, 204, 205, 206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
+	307, 308, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416,
+	417, 418, 421, 422, 423, 424, 425, 426, 428, 429, 431, 451, 500, 501, 502, 503, 504, 505, 506,
+	507, 508, 510, 511
+] satisfies Array<number>
 export const sessionSchema = z.object({
 	expired: z.boolean(),
 	user: z.bigint().nullable()
@@ -56,7 +62,7 @@ export function resultSchema<TData extends z.ZodTypeAny, U extends z.infer<TData
 		z.object({
 			success: z.literal(false),
 			error: z.object({
-				code: z.string(),
+				code: z.string().regex(/^[A-Z_]+$/),
 				message: z.string()
 			})
 		})
@@ -64,6 +70,33 @@ export function resultSchema<TData extends z.ZodTypeAny, U extends z.infer<TData
 	return {
 		...schema,
 		parse: schema.parse as (...args: Parameters<typeof schema.parse>) => TResult<U>
+	}
+}
+
+export function fetchSchema<TData extends z.ZodTypeAny, U extends z.infer<TData>>(
+	dataSchema: TData
+) {
+	const schema = z.discriminatedUnion('success', [
+		z.object({
+			success: z.literal(true),
+			data: dataSchema
+		}),
+		z.object({
+			success: z.literal(false),
+			error: z.object({
+				statusCode: z
+					.number()
+					.refine((val) => HTTP_STATUS_CODES.includes(val), {
+						message: 'Status code must be one of ' + HTTP_STATUS_CODES.join(', ')
+					}),
+				code: z.number(),
+				message: z.string()
+			})
+		})
+	])
+	return {
+		...schema,
+		parse: schema.parse as (...args: Parameters<typeof schema.parse>) => TFetch<U>
 	}
 }
 
@@ -79,6 +112,20 @@ declare global {
 		  }
 		| {
 				readonly success: false
+				readonly error: {
+					readonly code: string
+					readonly message: string
+				}
+		  }
+	type TFetch<T> =
+		| {
+				readonly success: true
+				readonly statusCode: number
+				data: T
+		  }
+		| {
+				readonly success: false
+				readonly statusCode: number
 				readonly error: {
 					readonly code: string
 					readonly message: string

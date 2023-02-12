@@ -2,7 +2,6 @@
 	import Input from '$/components/base/Input.svelte'
 	import { toast } from '$/components/base/Toast.svelte'
 	import { offlineMode } from '$/stores'
-	import { resultSchema } from '$/types'
 	import { goto } from '$app/navigation'
 
 	const fetcher = createFetcher(fetch)
@@ -13,7 +12,7 @@
 		const formData = new FormData(form)
 
 		processingRegister = true
-		const result = await fetcher(resultSchema(z.object({ id: z.bigint() })), '/api/v1/register', {
+		const result = await fetcher(z.object({ id: z.bigint() }), '/api/v1/register', {
 			method: 'POST',
 			body: buildFormData(Object.fromEntries(formData.entries()))
 		}).finally(() => (processingRegister = false))

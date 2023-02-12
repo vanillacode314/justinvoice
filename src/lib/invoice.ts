@@ -1,7 +1,7 @@
 import { toast } from '$/components/base/Toast.svelte'
 import { alert } from '$/modals/AlertModal.svelte'
 import { offlineMode, userState, userStateSchema } from '$/stores'
-import { invoiceItemLogSchema, invoiceSchema, resultSchema } from '$/types'
+import { invoiceItemLogSchema, invoiceSchema } from '$/types'
 import { z } from 'zod'
 
 const fetcher = createFetcher(fetch)
@@ -24,7 +24,7 @@ export const createInvoice = updateData({
 		}
 	},
 	async onlineCallback(invoice: TInvoice) {
-		return await fetcher(resultSchema(invoiceSchema), '/api/v1/private/invoices', {
+		return await fetcher(invoiceSchema, '/api/v1/private/invoices', {
 			method: 'POST',
 			body: buildFormData(invoice)
 		})
@@ -51,7 +51,7 @@ export const editInvoice = updateData({
 	},
 
 	async onlineCallback(invoice: TInvoice) {
-		return await fetcher(resultSchema(invoiceSchema), '/api/v1/private/invoices/' + invoice.id, {
+		return await fetcher(invoiceSchema, '/api/v1/private/invoices/' + invoice.id, {
 			method: 'PUT',
 			body: buildFormData(invoice)
 		})
@@ -81,7 +81,7 @@ export const removeInvoice = updateData({
 	},
 	async onlineCallback(ids: TInvoice['id'][]) {
 		const result = await fetcher(
-			resultSchema(z.object({ count: z.number() })),
+			z.object({ count: z.number() }),
 			`/api/v1/private/invoices/${ids.join(',')}`,
 			{
 				method: 'DELETE'
@@ -123,7 +123,7 @@ export const removeLogs = updateData({
 	},
 	async onlineCallback(invoiceId: TInvoice['id'], ids: TInvoiceItemLog['id'][]) {
 		const result = await fetcher(
-			resultSchema(invoiceItemLogSchema),
+			invoiceItemLogSchema,
 			`/api/v1/private/invoices/${invoiceId}/logs/${ids.join(',')}`,
 			{ method: 'DELETE' }
 		)
@@ -168,7 +168,7 @@ export const addLogs = updateData({
 	},
 	async onlineCallback(invoiceId: TInvoice['id'], log: TInvoiceItemLog) {
 		const result = await fetcher(
-			resultSchema(invoiceItemLogSchema),
+			invoiceItemLogSchema,
 			`/api/v1/private/invoices/${invoiceId}/logs`,
 			{
 				method: 'POST',
@@ -212,7 +212,7 @@ export const editLog = updateData({
 	},
 	async onlineCallback(invoiceId: TInvoiceItemLog['id'], log: TInvoiceItemLog) {
 		const result = await fetcher(
-			resultSchema(invoiceItemLogSchema),
+			invoiceItemLogSchema,
 			`/api/v1/private/invoices/${invoiceId}/logs/${log.id}`,
 			{
 				method: 'PUT',
@@ -247,7 +247,7 @@ export async function exportAll(filename: string = 'justinvoices') {
 	const $offlineMode = get(offlineMode)
 	if (!$offlineMode) {
 		const result = await fetcher(
-			resultSchema(userStateSchema.pick({ invoices: true, addressbook: true })),
+			userStateSchema.pick({ invoices: true, addressbook: true }),
 			'/api/v1/private/invoices?' + buildQueryString({ includeLogs: true, archived: null })
 		)
 		if (!result.success) {
@@ -312,7 +312,7 @@ export async function importInvoices() {
 
 	const $offlineMode = get(offlineMode)
 	if (!$offlineMode) {
-		const result = await fetcher(resultSchema(z.object({})), '/api/v1/private/import', {
+		const result = await fetcher(z.object({}), '/api/v1/private/import', {
 			method: 'POST',
 			body: buildFormData(importedData)
 		})

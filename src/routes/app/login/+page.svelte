@@ -3,7 +3,6 @@
 	import { toast } from '$/components/base/Toast.svelte'
 	import { alert } from '$/modals/AlertModal.svelte'
 	import { offlineMode } from '$/stores'
-	import { resultSchema } from '$/types'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import type { PageData } from './$types'
@@ -16,7 +15,7 @@
 		const form = e.currentTarget as HTMLFormElement
 		const formData = new FormData(form)
 		processingLogin = true
-		const result = await fetcher(resultSchema(z.object({ id: z.bigint() })), '/api/v1/login', {
+		const result = await fetcher(z.object({ id: z.bigint() }), '/api/v1/login', {
 			method: 'POST',
 			body: buildFormData(Object.fromEntries(formData.entries()))
 		}).finally(() => (processingLogin = false))

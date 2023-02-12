@@ -22,7 +22,7 @@
 
 	async function clearData() {
 		if (!$offlineMode) {
-			const result = await fetcher(resultSchema(z.object({})), '/api/v1/private/clear-data', {
+			const result = await fetcher(z.object({}), '/api/v1/private/clear-data', {
 				method: 'DELETE'
 			})
 			if (!result.success) {
@@ -39,7 +39,7 @@
 
 	onMount(async () => {
 		if ($offlineMode) return
-		const result = await fetcher(resultSchema(entitySchema.array()), '/api/v1/private/entities')
+		const result = await fetcher(entitySchema.array(), '/api/v1/private/entities')
 		if (!result.success) return
 		$userState.addressbook = result.data
 	})

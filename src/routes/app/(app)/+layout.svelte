@@ -18,13 +18,12 @@
 	$: data = $page.data as PageData
 
 	function parsePageData(...args: any[]) {
-		if (!browser) return
 		if (!(!$offlineMode && data.success)) return
 		const { invoices, addressbook } = data.data
 		$userState = Object.assign($userState, { invoices, addressbook })
 	}
 
-	$: parsePageData($offlineMode, data)
+	$: browser && parsePageData($offlineMode, data)
 
 	function importLegacyState(remove: boolean = false) {
 		if (localStorage.getItem('imported-legacy-state-v0')) return

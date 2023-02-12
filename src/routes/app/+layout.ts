@@ -1,7 +1,7 @@
 import { offlineMode } from '$/stores'
 import { browser } from '$app/environment'
 import { goto } from '$app/navigation'
-import { redirect } from '@sveltejs/kit'
+import { error, redirect } from '@sveltejs/kit'
 import type { LayoutLoad } from './$types'
 
 const sessionSchema = z.object({
@@ -33,7 +33,9 @@ export const load = (async ({ depends, url, fetch }) => {
 		return { user: null, expired: false }
 	}
 
-	const { user, expired } = await fetcher(sessionSchema, '/api/v1/check-session')
+	const result = await fetcher(sessionSchema, '/api/v1/check-session')
+	if (!result.success) throw error(result.statusCode, result.error)
+	const { user, expired } = result.data
 	if (user === null) {
 		if (!AUTH_ROUTES.includes(route)) {
 			throw redirect(303, '/app/login')

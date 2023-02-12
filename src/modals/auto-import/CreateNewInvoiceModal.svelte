@@ -25,7 +25,7 @@
 			currency: $settings.defaultCurrency
 		})
 		if ($offlineMode) return
-		const result = await fetcher(resultSchema(entitySchema.array()), '/api/v1/private/entities')
+		const result = await fetcher(entitySchema.array(), '/api/v1/private/entities')
 		if (result.success) $userState.addressbook = result.data
 	}
 

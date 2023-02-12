@@ -1,5 +1,5 @@
 import { userState } from '$/stores'
-import { entitySchema, resultSchema } from '$/types'
+import { entitySchema } from '$/types'
 const fetcher = createFetcher(fetch)
 
 export const addAddress = updateData({
@@ -10,7 +10,7 @@ export const addAddress = updateData({
 		}
 	},
 	async onlineCallback(entity: TEntity) {
-		return await fetcher(resultSchema(entitySchema), '/api/v1/private/entities', {
+		return await fetcher(entitySchema, '/api/v1/private/entities', {
 			method: 'POST',
 			body: buildFormData(entity)
 		})
@@ -36,7 +36,7 @@ export const editAddress = updateData({
 		}
 	},
 	async onlineCallback(entity: TEntity) {
-		return await fetcher(resultSchema(entitySchema), `/api/v1/private/entities/${entity.id}`, {
+		return await fetcher(entitySchema, `/api/v1/private/entities/${entity.id}`, {
 			method: 'PUT',
 			body: buildFormData(entity)
 		})
@@ -69,7 +69,7 @@ export const removeAddresses = updateData({
 	},
 	async onlineCallback(ids: TEntity['id'][]) {
 		const result = await fetcher(
-			resultSchema(z.object({ count: z.number() })),
+			z.object({ count: z.number() }),
 			`/api/v1/private/entities/${ids.join(',')}`,
 			{
 				method: 'DELETE'

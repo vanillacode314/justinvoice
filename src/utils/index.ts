@@ -1,4 +1,6 @@
+import { fetchSchema, resultSchema } from '$/types'
 import * as devalue from 'devalue'
+import type z from 'zod'
 import { createZodFetcher } from 'zod-fetch'
 
 export const add = (a: number, b: number) => a + b
@@ -107,12 +109,19 @@ export function pullKeys<T extends Record<any, any> = any>(
 
 export const createFetcher = (
 	fetcher: (input: URL | RequestInfo, init?: RequestInit) => Promise<Response>
-) =>
-	createZodFetcher(async (input, init?) => {
+) => {
+	const fetchWithZod = createZodFetcher(async (input: URL | RequestInfo, init?: RequestInit) => {
 		const res = await fetcher(input, init)
 		const value = await res.text()
-		return devalue.parse(value)
+		const result = devalue.parse(value) as TResult<any>
+		return { ...result, statusCode: res.status }
 	})
+	return async <TSchema extends z.ZodTypeAny>(
+		schema: TSchema,
+		input: URL | RequestInfo,
+		init?: RequestInit
+	) => fetchWithZod(fetchSchema(schema), input, init)
+}
 
 export const genId: (ids: bigint[]) => bigint = (ids = []) => {
 	let id = BigInt(Math.floor(Math.random() * Math.pow(10, 16)))
