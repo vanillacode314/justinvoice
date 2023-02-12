@@ -61,6 +61,7 @@ declare global {
   const handleTransaction: typeof import('./lib/db')['handleTransaction']
   const hasContext: typeof import('svelte')['hasContext']
   const importInvoices: typeof import('./lib/invoice')['importInvoices']
+  const isEqual: typeof import('./utils/index')['isEqual']
   const linear: typeof import('svelte/easing')['linear']
   const longpress: typeof import('./utils/use-longpress')['longpress']
   const makeResultHandler: typeof import('./utils/server')['makeResultHandler']

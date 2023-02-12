@@ -40,7 +40,9 @@
 			on:input
 			{...$$restProps}
 		>
-			{#each optionsSchema.array().parse(options) as { selected, disabled, label, value } (value)}
+			{#each optionsSchema
+				.array()
+				.parse(options) as { selected, disabled, label, value } (`${label || value}` + value)}
 				<option {selected} {disabled} {value}>{label || value}</option>
 			{/each}
 		</select>

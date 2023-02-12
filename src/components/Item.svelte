@@ -16,7 +16,7 @@
 	export let currency: TInvoice['currency']
 
 	function editItem() {
-		$appState.selectedItemId = id
+		$appState.selectedLogId = id
 		$editItemModalOpen = true
 		$appState = $appState
 	}

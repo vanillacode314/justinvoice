@@ -82,7 +82,12 @@
 		}
 	]
 
-	$: actions = $appState.actions.filter((item) => item !== 'spacer' && !item.noFab) as TAction[]
+	$: actions = $appState.actions.filter(
+		(action) => action === 'spacer' || action.mode === $appState.mode
+	)
+	$: fabActions = $appState.actions.filter(
+		(action) => action !== 'spacer' && action.mode === $appState.mode && !action.noFab
+	)
 
 	let processingLogout: boolean = false
 </script>
@@ -97,7 +102,7 @@
 	<div class="drawer-content flex flex-col" id="scroller">
 		<!-- Toolbar -->
 		<div class="pt-5 px-5 hidden lg:flex justify-end gap-5">
-			{#each $appState.actions as item, index (item === 'spacer' ? `spacer-${index}` : item.label)}
+			{#each actions as item, index (item === 'spacer' ? `spacer-${index}` : item.id)}
 				{#if item !== 'spacer'}
 					{@const { icon, action, label, color } = item}
 					<button
@@ -114,8 +119,8 @@
 			{/each}
 		</div>
 		<!-- Fab -->
-		{#if actions.length > 0}
-			<Fab {actions} />
+		{#if fabActions.length > 0}
+			<Fab actions={fabActions} />
 		{/if}
 		<!-- Navbar -->
 		<div class="w-full navbar lg:hidden sticky top-0 z-30 bg-base-300 gap-3">

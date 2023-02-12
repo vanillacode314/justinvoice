@@ -7,21 +7,16 @@
 	import { invoiceNotesModalOpen } from '$/modals/auto-import/InvoiceNotesModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
-	import { actionSchema, appState, offlineMode, userState } from '$/stores'
-	import { invoiceSchema, resultSchema } from '$/types'
+	import { actionSchema, appState, userState } from '$/stores'
 	import { exportToJsonFile } from '$/utils'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 
-	const fetcher = createFetcher(fetch)
-
-	/// STATE ///
 	$: id = BigInt($page.params.id)
 	$: invoice = $userState.invoices.find((i) => i.id === id)
 	$: $appState.selectedInvoiceId = id
 	let deleteInvoiceModalOpen: boolean = false
 	let deleteItemsModalOpen: boolean = false
-	let selectedItems: boolean[] = []
 	let copyState: 'neutral' | 'success' | 'error' = 'neutral'
 
 	$: recipient = $userState.addressbook.find((address) => address.id == invoice?.recipientId)
@@ -101,107 +96,85 @@
 		window.open(`/pdf/${id}`, '_blank')
 	}
 
-	function getActions(..._args: any[]) {
-		const allSelected = selectedItems.every((val) => val === true)
-		return z
+	onMount(() => {
+		if (!(invoice && sender && recipient)) return
+
+		$appState.actions = z
 			.union([actionSchema, z.literal('spacer')])
 			.array()
-			.parse(
-				invoice && sender && recipient
-					? $appState.selectionMode
-						? [
-								{
-									icon: 'i-mdi-select-all',
-									label: allSelected ? 'Deselect All' : 'Select All',
-									action: () => (selectedItems = selectedItems.fill(!allSelected))
-								},
-								{
-									icon: 'i-mdi-swap-horizontal',
-									label: 'Invert Selection',
-									action: () => (selectedItems = selectedItems.map((val) => !val))
-								},
-								{
-									icon: 'i-mdi-trash',
-									label: 'Delete Items',
-									color: 'btn-error',
-									action: () => (deleteItemsModalOpen = true)
-								}
-						  ]
-						: [
-								{
-									icon: 'i-mdi-arrow-back',
-									label: 'Back',
-									noFab: true,
-									action: () => goto('/app')
-								},
-								'spacer',
-								{
-									icon: 'i-mdi-notes',
-									label: 'Notes',
-									action: () => ($invoiceNotesModalOpen = true)
-								},
-								{
-									icon: 'i-mdi-clipboard',
-									label:
-										copyState === 'neutral'
-											? 'Copy ID'
-											: copyState === 'success'
-											? 'Copy Success'
-											: 'Copy Error',
-									color:
-										copyState === 'neutral'
-											? ''
-											: copyState === 'success'
-											? 'btn-success'
-											: 'btn-error',
-									action: () => {
-										copyState = 'neutral'
-										try {
-											navigator.clipboard.writeText(String(id))
-											copyState = 'success'
-										} catch {
-											copyState = 'error'
-										} finally {
-											setTimeout(() => (copyState = 'neutral'), 3000)
-										}
-									}
-								},
-								{
-									icon: 'i-mdi-printer',
-									label: 'Print',
-									action: print
-								},
-								{
-									icon: 'i-mdi-export',
-									label: 'Export',
-									action: exportInvoice
-								},
-								{
-									icon: 'i-mdi-edit',
-									label: 'Edit',
-									action: () => ($editInvoiceModalOpen = true)
-								},
-								{
-									icon: 'i-mdi-trash',
-									label: 'Delete',
-									color: 'btn-error',
-									action: () => (deleteInvoiceModalOpen = true)
-								},
-								{
-									icon: 'i-mdi-add',
-									label: 'Add Item',
-									color: 'btn-primary',
-									action: addItem
-								}
-						  ]
-					: []
-			)
-	}
-	$: $appState.selectionMode = selectedItems.some((val) => val === true)
-	$: selectedItems.length = invoice ? invoice.logs.length : 0
-	$: $appState.actions = getActions($appState.selectionMode, selectedItems, copyState)
+			.parse([
+				{
+					icon: 'i-mdi-arrow-back',
+					label: 'Back',
+					noFab: true,
+					action: () => goto('/app')
+				},
+				'spacer',
+				{
+					icon: 'i-mdi-trash',
+					mode: 'selection',
+					label: 'Delete',
+					color: 'btn-error',
+					action: () => (deleteItemsModalOpen = true)
+				},
+				{
+					icon: 'i-mdi-notes',
+					label: 'Notes',
+					action: () => ($invoiceNotesModalOpen = true)
+				},
+				{
+					icon: 'i-mdi-clipboard',
+					label:
+						copyState === 'neutral'
+							? 'Copy ID'
+							: copyState === 'success'
+							? 'Copy Success'
+							: 'Copy Error',
+					color:
+						copyState === 'neutral' ? '' : copyState === 'success' ? 'btn-success' : 'btn-error',
+					action: () => {
+						copyState = 'neutral'
+						try {
+							navigator.clipboard.writeText(String(id))
+							copyState = 'success'
+						} catch {
+							copyState = 'error'
+						} finally {
+							setTimeout(() => (copyState = 'neutral'), 3000)
+						}
+					}
+				},
+				{
+					icon: 'i-mdi-printer',
+					label: 'Print',
+					action: print
+				},
+				{
+					icon: 'i-mdi-export',
+					label: 'Export',
+					action: exportInvoice
+				},
+				{
+					icon: 'i-mdi-edit',
+					label: 'Edit',
+					action: () => ($editInvoiceModalOpen = true)
+				},
+				{
+					icon: 'i-mdi-trash',
+					label: 'Delete',
+					color: 'btn-error',
+					action: () => (deleteInvoiceModalOpen = true)
+				},
+				{
+					icon: 'i-mdi-add',
+					label: 'Add Item',
+					color: 'btn-primary',
+					action: addItem
+				}
+			])
+	})
 	onDestroy(() => {
-		selectedItems.fill(false)
+		$appState.selectedItems = $appState.selectedItems.fill(false)
 		$appState.actions = []
 	})
 </script>
@@ -263,7 +236,11 @@
 						out:scale|local
 						class="grid"
 					>
-						<Item {...log} currency={invoice.currency} bind:selected={selectedItems[index]} />
+						<Item
+							{...log}
+							currency={invoice.currency}
+							bind:selected={$appState.selectedItems[index]}
+						/>
 					</div>
 				{/each}
 			</div>
@@ -295,13 +272,16 @@
 			if (!invoice) return
 			const result = await removeLogs(
 				id,
-				getSelectedFromArray(invoice.logs, selectedItems).map((address) => address.id)
+				getSelectedFromArray(invoice.logs, $appState.selectedItems).map((address) => address.id)
 			)
 			if (!result.success) {
 				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
 			}
-			selectedItems = selectedItems.fill(false)
+			$appState.selectedItems = $appState.selectedItems.fill(false)
 		})
+	}}
+	on:cancel={() => {
+		$appState.selectedItems = $appState.selectedItems.fill(false)
 	}}
 	bind:open={deleteItemsModalOpen}
 />

@@ -14,16 +14,16 @@
 	let processingEdit: boolean = false
 
 	$: selectedInvoice = $userState.invoices.find(({ id }) => id === $appState.selectedInvoiceId)
-	$: selectedItem = selectedInvoice?.logs.find(({ id }) => id === $appState.selectedItemId)
+	$: selectedLog = selectedInvoice?.logs.find(({ id }) => id === $appState.selectedLogId)
 
 	function onOpen() {
-		if (!selectedItem) return
-		formData = invoiceItemLogSchema.parse(selectedItem)
+		if (!selectedLog) return
+		formData = invoiceItemLogSchema.parse(selectedLog)
 	}
 
 	async function onSubmit(e: SubmitEvent) {
 		e.preventDefault()
-		if ($appState.selectedInvoiceId && $appState.selectedItemId) {
+		if ($appState.selectedInvoiceId && $appState.selectedLogId) {
 			const entity = invoiceItemLogSchema.parse(formData)
 			processingEdit = true
 			const result = await editLog($appState.selectedInvoiceId, entity).finally(

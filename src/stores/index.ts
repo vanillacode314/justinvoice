@@ -5,26 +5,98 @@ import * as devalue from 'devalue'
 import type { Readable } from 'svelte/store'
 import { z } from 'zod'
 
-export const actionSchema = z.object({
-	icon: z.string(),
-	color: z.string().default(''),
-	label: z.string(),
-	action: z.function(),
-	noClose: z.boolean().default(false),
-	noFab: z.boolean().default(false)
-})
+const modes = ['default', 'selection'] as const
+export const actionSchema = z
+	.object({
+		id: z.string().optional(),
+		icon: z.string(),
+		color: z.string().default(''),
+		label: z.string(),
+		mode: z.enum(modes).default('default'),
+		action: z.function(),
+		noClose: z.boolean().default(false),
+		noFab: z.boolean().default(false)
+	})
+	.transform((action) => ({
+		...action,
+		id:
+			action.id ||
+			action.label
+				.toLowerCase()
+				.replace(/\s+/g, '-')
+				.replace(/[^a-z0-9-]/g, '')
+	}))
 export type TAction = z.infer<typeof actionSchema>
 
-export const appStateSchema = z.object({
+const internalAppStateSchema = z.object({
 	selectedInvoiceId: z.bigint().default(-1n),
-	selectedItemId: z.bigint().default(-1n),
+	selectedLogId: z.bigint().default(-1n),
 	selectedAddressId: z.bigint().default(-1n),
 	drawerVisible: z.boolean().default(false),
-	selectionMode: z.boolean().default(false),
-	actions: actionSchema.or(z.literal('spacer')).array().default(Array)
+	selectedItems: z.boolean().default(false).array().default(Array),
+	actions: actionSchema
+		.or(z.literal('spacer'))
+		.array()
+		.default(Array)
+		.transform((actions) =>
+			actions.filter(
+				(action1, index) =>
+					action1 === 'spacer' ||
+					actions.findIndex((action2) => action2 !== 'spacer' && action2.id === action1.id) ===
+						index
+			)
+		)
+})
+type TInternalAppState = z.infer<typeof internalAppStateSchema>
+export const appStateSchema = internalAppStateSchema.extend({
+	mode: z.enum(modes).default('default')
 })
 export type TAppState = z.infer<typeof appStateSchema>
-export const appState = writable<TAppState>(appStateSchema.parse({}))
+function appStateStore() {
+	const internalAppState = writable<TInternalAppState>(internalAppStateSchema.parse({}))
+	const { set, update } = internalAppState
+	const { subscribe } = derived<[typeof internalAppState], TAppState>(
+		[internalAppState],
+		([$internalAppState]) => {
+			const selectionMode = $internalAppState.selectedItems.some(Boolean)
+			const allSelected = $internalAppState.selectedItems.every(Boolean)
+			return appStateSchema.parse({
+				...$internalAppState,
+				mode: selectionMode ? 'selection' : 'default',
+				actions: [
+					...$internalAppState.actions,
+					{
+						id: 'select-all',
+						icon: 'i-mdi-select-all',
+						label: allSelected ? 'Deselect All' : 'Select All',
+						mode: 'selection',
+						action: () =>
+							internalAppState.update(($internalAppState) => {
+								$internalAppState.selectedItems = $internalAppState.selectedItems.fill(!allSelected)
+								return $internalAppState
+							})
+					},
+					{
+						icon: 'i-mdi-swap-horizontal',
+						label: 'Invert Selection',
+						mode: 'selection',
+						action: () =>
+							internalAppState.update(($internalAppState) => {
+								$internalAppState.selectedItems = $internalAppState.selectedItems.map((val) => !val)
+								return $internalAppState
+							})
+					}
+				]
+			})
+		}
+	)
+	return {
+		set,
+		update,
+		subscribe
+	}
+}
+export const appState = appStateStore()
 
 export const settingsSchema = z.object({
 	defaultSender: z.bigint().nullable().default(null),

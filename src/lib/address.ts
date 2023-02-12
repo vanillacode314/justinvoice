@@ -6,7 +6,7 @@ export const addAddress = updateData({
 	offlineCallback(entity: TEntity) {
 		return {
 			success: true,
-			data: entity
+			data: { ...entity, id: genId(get(userState).addressbook.map(({id}) => id)) }
 		}
 	},
 	async onlineCallback(entity: TEntity) {

@@ -5,65 +5,28 @@
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { actionSchema, appState, userState } from '$/stores'
 
-	let selectedAddresses: boolean[] = []
 	let deleteModalOpen: boolean = false
-
-	$: $appState.selectionMode = selectedAddresses.some((val) => val === true)
-	$: selectedAddresses.length = $userState.addressbook.length
-
-	function getActions(..._args: any[]) {
-		const allSelected = selectedAddresses.every((val) => val === true)
-		return actionSchema.array().parse(
-			$appState.selectionMode
-				? [
-						{
-							icon: 'i-mdi-select-all',
-							label: allSelected ? 'Deselect All' : 'Select All',
-							action: () => (selectedAddresses = selectedAddresses.fill(!allSelected))
-						},
-						{
-							icon: 'i-mdi-swap-horizontal',
-							label: 'Invert Selection',
-							action: () => (selectedAddresses = selectedAddresses.map((val) => !val))
-						},
-						{
-							icon: 'i-mdi-trash',
-							label: 'Delete',
-							color: 'btn-error',
-							action: () => (deleteModalOpen = true)
-						}
-				  ]
-				: [
-						{
-							icon: 'i-mdi-add',
-							label: 'Add',
-							color: 'btn-primary',
-							action: () => ($addNewAddressModalOpen = true)
-						}
-				  ]
-		)
-	}
-
-	$: $appState.actions = getActions($appState.selectionMode, selectedAddresses)
 
 	onMount(() => {
 		$appState.actions = actionSchema.array().parse([
+			{
+				icon: 'i-mdi-trash',
+				label: 'Delete',
+				color: 'btn-error',
+				mode: 'selection',
+				action: () => (deleteModalOpen = true)
+			},
 			{
 				icon: 'i-mdi-add',
 				label: 'Add',
 				color: 'btn-primary',
 				action: () => ($addNewAddressModalOpen = true)
-			},
-			{
-				icon: 'i-mdi-trash',
-				label: 'Delete',
-				action: () => (deleteModalOpen = true)
 			}
 		])
 	})
 
 	onDestroy(() => {
-		selectedAddresses.fill(false)
+		$appState.selectedItems = $appState.selectedItems.fill(false)
 		$appState.actions = []
 	})
 </script>
@@ -89,7 +52,7 @@
 				out:scale|local
 				class="grid"
 			>
-				<Address {...address} bind:selected={selectedAddresses[index]} />
+				<Address {...address} bind:selected={$appState.selectedItems[index]} />
 			</div>
 		{/each}
 	</div>
@@ -102,12 +65,15 @@
 	on:confirm={async (e) => {
 		e.detail(async () => {
 			const result = await removeAddresses(
-				getSelectedFromArray($userState.addressbook, selectedAddresses).map(({ id }) => id)
+				getSelectedFromArray($userState.addressbook, $appState.selectedItems).map(({ id }) => id)
 			)
 			if (!result.success) {
 				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
 			}
-			selectedAddresses = selectedAddresses.fill(false)
+			$appState.selectedItems = $appState.selectedItems.fill(false)
 		})
+	}}
+	on:cancel={() => {
+		$appState.selectedItems = $appState.selectedItems.fill(false)
 	}}
 />

@@ -5,7 +5,7 @@
 	export let actions: TAction[]
 	let fabOpen: boolean = false
 
-	$: open = $appState.selectionMode || fabOpen
+	$: open = $appState.mode === 'selection' || fabOpen
 
 	$: if ($navigating) {
 		fabOpen = false
@@ -20,14 +20,17 @@
 			class:bg-stone-700={open}
 			class:bg-stone-800={!open}
 			on:click={() => {
-				if ($appState.selectionMode) return
+				if ($appState.mode === 'selection') {
+					$appState.selectedItems = $appState.selectedItems.fill(false)
+					return
+				}
 				fabOpen = !fabOpen
 			}}
 		>
 			<span class="{open ? 'i-mdi-close' : 'i-mdi-menu'} text-xl" />
 		</button>
 		<div class="flex flex-col-reverse gap-3">
-			{#each [...(open ? actions : [])].reverse() as { color, icon, label, action, noClose }, index (label)}
+			{#each [...(open ? actions : [])].reverse() as { id, color, icon, label, action, noClose }, index (id)}
 				<button
 					type="button"
 					out:fly={{ duration: 100, delay: 50 * (actions.length - index), y: 10 * index }}
@@ -35,7 +38,7 @@
 					class="btn {color} shadow-lg rounded-xl transition-transform flex gap-3 items-center justify-start"
 					on:click={() => {
 						action()
-						if ($appState.selectionMode) return
+						if ($appState.mode === 'selection') return
 						if (!noClose) {
 							fabOpen = false
 						}
