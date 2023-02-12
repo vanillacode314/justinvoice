@@ -56,12 +56,13 @@ export const invoiceSchema = z.object({
 })
 
 export function resultSchema<TData extends z.ZodTypeAny, U extends z.infer<TData>>(
-	dataSchema: TData
+	dataSchema?: TData
 ) {
+	const _dataSchema: TData = dataSchema || (z.any() as any)
 	const schema = z.discriminatedUnion('success', [
 		z.object({
 			success: z.literal(true),
-			data: dataSchema
+			data: _dataSchema
 		}),
 		z.object({
 			success: z.literal(false),

@@ -87,7 +87,7 @@
 	)
 	$: fabActions = $appState.actions.filter(
 		(action) => action !== 'spacer' && action.mode === $appState.mode && !action.noFab
-	)
+	) as TAction[]
 
 	let processingLogout: boolean = false
 </script>
