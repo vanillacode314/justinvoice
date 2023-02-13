@@ -124,13 +124,13 @@
 				},
 				{
 					icon: 'i-mdi-clipboard',
-					label:
+					label: () =>
 						copyState === 'neutral'
 							? 'Copy ID'
 							: copyState === 'success'
 							? 'Copy Success'
 							: 'Copy Error',
-					color:
+					color: () =>
 						copyState === 'neutral' ? '' : copyState === 'success' ? 'btn-success' : 'btn-error',
 					action: () => {
 						copyState = 'neutral'
@@ -140,7 +140,11 @@
 						} catch {
 							copyState = 'error'
 						} finally {
-							setTimeout(() => (copyState = 'neutral'), 3000)
+							$appState = $appState
+							setTimeout(() => {
+								copyState = 'neutral'
+								$appState = $appState
+							}, 3000)
 						}
 					}
 				},

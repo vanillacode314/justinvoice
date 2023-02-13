@@ -35,7 +35,7 @@
 					type="button"
 					out:fly={{ duration: 100, delay: 50 * (actions.length - index), y: 10 * index }}
 					in:fly={{ duration: 100, delay: 50 * index, y: 10 * (actions.length - index) }}
-					class="btn {color} shadow-lg rounded-xl transition-transform flex gap-3 items-center justify-start"
+					class="btn {color()} shadow-lg rounded-xl transition-transform flex gap-3 items-center justify-start"
 					on:click={() => {
 						action()
 						if ($appState.mode === 'selection') return
@@ -46,7 +46,7 @@
 				>
 					<span class="{icon} text-xl" />
 					<span>
-						{label}
+						{label()}
 					</span>
 				</button>
 			{/each}

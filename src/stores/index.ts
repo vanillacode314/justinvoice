@@ -10,8 +10,15 @@ export const actionSchema = z
 	.object({
 		id: z.string().optional(),
 		icon: z.string(),
-		color: z.string().default(''),
-		label: z.string(),
+		color: z
+			.string()
+			.default('')
+			.transform((value) => () => value)
+			.or(z.function().returns(z.string())),
+		label: z
+			.string()
+			.transform((value) => () => value)
+			.or(z.function().returns(z.string())),
 		mode: z.enum(modes).default('default'),
 		action: z.function(),
 		noClose: z.boolean().default(false),
@@ -21,7 +28,8 @@ export const actionSchema = z
 		...action,
 		id:
 			action.id ||
-			action.label
+			action
+				.label()
 				.toLowerCase()
 				.replace(/\s+/g, '-')
 				.replace(/[^a-z0-9-]/g, '')

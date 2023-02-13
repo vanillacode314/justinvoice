@@ -107,11 +107,11 @@
 					{@const { icon, action, label, color } = item}
 					<button
 						in:scale={{ duration: 150 }}
-						class="btn btn-sm flex gap-1 {color} items-center"
+						class="btn btn-sm flex gap-1 {color()} items-center"
 						on:click={action}
 					>
 						<span class="{icon} text-lg" />
-						<span>{label}</span>
+						<span>{label()}</span>
 					</button>
 				{:else}
 					<span class="grow" />
