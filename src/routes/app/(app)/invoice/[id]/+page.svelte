@@ -114,6 +114,7 @@
 					icon: 'i-mdi-trash',
 					mode: 'selection',
 					label: 'Delete',
+					id: 'delete-logs',
 					color: 'btn-error',
 					action: () => (deleteItemsModalOpen = true)
 				},
