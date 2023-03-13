@@ -7,7 +7,7 @@ const HTTP_STATUS_CODES = [
 	507, 508, 510, 511
 ] satisfies Array<number>
 const httpStatusCodeSchema = z.number().refine((val) => HTTP_STATUS_CODES.includes(val), {
-	message: 'Status code must be one of ' + HTTP_STATUS_CODES.join(', ')
+	message: `Status code must be one of ${HTTP_STATUS_CODES.join(', ')}`
 })
 
 export const sessionSchema = z.object({
@@ -58,7 +58,7 @@ export const invoiceSchema = z.object({
 export function resultSchema<TData extends z.ZodTypeAny, U extends z.infer<TData>>(
 	dataSchema?: TData
 ) {
-	const _dataSchema: TData = dataSchema || (z.any() as any)
+	const _dataSchema: TData = dataSchema || (z.any() as unknown as TData)
 	const schema = z.discriminatedUnion('success', [
 		z.object({
 			success: z.literal(true),
@@ -108,7 +108,7 @@ export function fetchSchema<TData extends z.ZodTypeAny, U extends z.infer<TData>
 
 declare global {
 	type TInvoiceItemType = ArrayValues<typeof InvoiceItemType>
-	type ArrayValues<T extends Readonly<Array<any>>> = T[number]
+	type ArrayValues<T extends Readonly<Array<unknown>>> = T[number]
 	type TSession = z.infer<typeof sessionSchema>
 	type TEntity = z.infer<typeof entitySchema>
 	type TResult<T> =

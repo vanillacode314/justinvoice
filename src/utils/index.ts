@@ -123,7 +123,7 @@ export const createFetcher = (
 	) => fetchWithZod(fetchSchema(schema), input, init)
 }
 
-export const genId: (ids: bigint[]) => bigint = (ids = []) => {
+export const genId: (ids?: bigint[]) => bigint = (ids = []) => {
 	let id = BigInt(Math.floor(Math.random() * Math.pow(10, 16)))
 	while (ids.includes(id)) {
 		id = BigInt(Math.floor(Math.random() * Math.pow(10, 16)))

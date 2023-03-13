@@ -66,7 +66,14 @@ export const addLogs = updateData(
 				success: true,
 				data: {
 					invoiceId,
-					log
+					log: {
+						...log,
+						id: genId(
+							get(userState)
+								.invoices.flatMap((invoice) => invoice.logs)
+								.map((log) => log.id)
+						)
+					}
 				}
 			}
 		},
@@ -84,7 +91,7 @@ export const addLogs = updateData(
 				success: true,
 				data: {
 					invoiceId,
-					log
+					log: result.data
 				}
 			}
 		},
@@ -99,13 +106,19 @@ export const addLogs = updateData(
 			})
 			return {
 				success: true,
-				data: log
+				data: {
+					invoiceId,
+					log
+				}
 			}
 		}
 	},
 	{
-		schema: invoiceItemLogSchema.refine(({ id }) => id !== -1n, {
-			message: 'Specify an id to add a log'
+		schema: z.object({
+			invoiceId: z.bigint(),
+			log: invoiceItemLogSchema.refine(({ id }) => id !== -1n, {
+				message: 'Specify an id to add a log'
+			})
 		})
 	}
 )

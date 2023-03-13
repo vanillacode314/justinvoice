@@ -33,8 +33,9 @@ export function updateData<
 				? await callbacks.offlineCallback(...args)
 				: await callbacks.onlineCallback(...args)
 			if (!result.success) return result
-			const result2 = await callbacks.updateCallback(result.data)
-			return resultSchema(_schema).parse(result2)
+			resultSchema(_schema).parse(result)
+			const result3 = await callbacks.updateCallback(result.data)
+			return result3
 		} catch (error) {
 			if (error instanceof ZodError) {
 				return resultSchema().parse({

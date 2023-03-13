@@ -3,7 +3,7 @@
 	import { page } from '$app/stores'
 	let processing: boolean = false
 
-	$: error = $page.error! 
+	$: error = $page.error!
 </script>
 
 <main class="p-10 grid h-full place-content-center gap-5 justify-items-center">
