@@ -5,10 +5,11 @@
 <script lang="ts">
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { appState } from '$/stores'
-	import { entitySchema, type TEntity } from '$/types'
-	import { addAddress } from '$/utils/address'
+	import { entitySchema } from '$/types'
 
+	let processing: boolean = false
 	let formData: TEntity = entitySchema.parse({})
 
 	function onOpen() {
@@ -16,12 +17,21 @@
 	}
 
 	/// METHODS ///
-	function onSubmit() {
-		const data = entitySchema.parse(formData)
-		const { id } = addAddress(data.name, data.address)
-		$appState.selectedAddressId = id
-		$appState.drawerVisible = false
-		$appState = $appState
+	async function onSubmit(e: SubmitEvent) {
+		e.preventDefault()
+		processing = true
+		const result = await addAddress(entitySchema.parse(formData)).finally(
+			() => (processing = false)
+		)
+		if (!result.success) {
+			toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			return
+		}
+		$appState = Object.assign($appState, {
+			selectedAddressId: result.data.id,
+			drawerVisible: false
+		})
+		$addNewAddressModalOpen = false
 	}
 </script>
 
@@ -50,7 +60,17 @@
 			<button type="button" on:click={() => ($addNewAddressModalOpen = false)} class="btn btn-ghost"
 				>Cancel</button
 			>
-			<button class="btn btn-success">Create</button>
+			<button type="submit" class="btn btn-primary flex gap-1 items-center">
+				{#if processing}
+					<div class="animate-spin preserve-3d">
+						<span class="i-mdi:dots-circle" />
+					</div>
+					<span>Working on it</span>
+				{:else}
+					<span class="i-mdi-check text-lg" />
+					Add
+				{/if}
+			</button>
 		</div>
 	</form>
 </Modal>

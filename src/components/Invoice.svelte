@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { userState } from '$/stores'
-	import type { TInvoice } from '$/types'
 
 	/// STATE ///
 	export let id: TInvoice['id']
@@ -9,6 +8,8 @@
 	export let senderId: TInvoice['senderId']
 	export let recipientId: TInvoice['recipientId']
 	export let paid: TInvoice['paid']
+	export let logs: TInvoice['logs']
+	export let currency: TInvoice['currency']
 
 	$: recipient = $userState.addressbook.find((address) => address.id == recipientId)
 	$: sender = $userState.addressbook.find((address) => address.id == senderId)
@@ -19,7 +20,7 @@
 	class="card bg-stone-900 shadow overflow-visible cursor-pointer hover:shadow-none p-5 gap-1 transition hover:bg-stone-800"
 	href="/app/invoice/{id}"
 >
-	<h2 class="card-title justify-between items-baseline">
+	<h2 class="card-title justify-between items-baseline mb-1">
 		{title}
 		<div class="badge" class:badge-error={!paid} class:badge-success={paid}>
 			{paid ? 'Paid' : 'Unpaid'}

@@ -20,7 +20,7 @@
 	): Message {
 		const message = {
 			id: crypto.randomUUID(),
-			title,
+			title: title.replace(/_/g, ' '),
 			content,
 			type
 		}
@@ -48,16 +48,7 @@
 	} satisfies Record<MessageType, string>
 </script>
 
-<script lang="ts">
-	let innerWidth: number
-</script>
-
-<svelte:window bind:innerWidth />
-<div
-	class="toast min-w-full"
-	class:toast-top={innerWidth < 768}
-	class:toast-center={innerWidth < 768}
->
+<div class="toast min-w-full toast-top toast-center md:min-w-0 md:toast-bottom md:toast-end">
 	{#each $messages as { id, title, content, type } (id)}
 		<div
 			class="alert items-start"
@@ -71,7 +62,7 @@
 			<div class="flex gap-3">
 				<span class="shrink-0 {iconMap[type]} text-3xl" />
 				<div class="flex flex-col gap-1 items-start">
-					<span class="uppercase font-bold tracking-wider text-xs">{title}</span>
+					<span class="uppercase font-bold tracking-wide text-xs">{title}</span>
 					<span class="text-sm">{content}</span>
 				</div>
 			</div>

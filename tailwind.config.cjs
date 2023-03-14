@@ -9,6 +9,9 @@ const config = {
 		}
 	},
 
+	daisyui: {
+		logs: false
+	},
 	plugins: [require('daisyui')]
 }
 

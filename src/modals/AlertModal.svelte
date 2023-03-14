@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts">
-	import Modal from '$components/base/Modal.svelte'
+	import Modal from '$/components/base/Modal.svelte'
 
 	interface $$Slots {
 		default: {
@@ -38,7 +38,7 @@
 				{$title}
 			</span>
 		</h3>
-		<p>{$message}</p>
+		<p class="whitespace-pre-wrap">{$message}</p>
 		<div class="modal-action">
 			<button type="submit" class="btn btn-primary flex gap-1 items-center">
 				<span class="i-mdi-check text-lg" />

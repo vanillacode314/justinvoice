@@ -3,26 +3,35 @@
 </script>
 
 <script lang="ts">
+	import Button from '$/components/base/Button.svelte'
 	import Input from '$/components/base/Input.svelte'
 	import Modal from '$/components/base/Modal.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { appState, userState } from '$/stores'
-	import { invoiceItemLogSchema, type TInvoiceItemLog } from '$/types'
+	import { invoiceItemLogSchema } from '$/types'
 
 	let formData: TInvoiceItemLog = invoiceItemLogSchema.parse({})
+	let processingEdit: boolean = false
 
 	$: selectedInvoice = $userState.invoices.find(({ id }) => id === $appState.selectedInvoiceId)
-	$: selectedItem = selectedInvoice?.logs.find(({ id }) => id === $appState.selectedItemId)
+	$: selectedLog = selectedInvoice?.logs.find(({ id }) => id === $appState.selectedLogId)
 
 	function onOpen() {
-		if (!selectedItem) return
-		formData = invoiceItemLogSchema.parse(selectedItem)
+		if (!selectedLog) return
+		formData = invoiceItemLogSchema.parse(selectedLog)
 	}
 
-	function onSubmit() {
-		if (selectedItem) {
-			const { qty, cost, type, title, description } = invoiceItemLogSchema.parse(formData)
-			Object.assign(selectedItem, { qty, cost, type, title, description })
-			$userState = $userState
+	async function onSubmit(e: SubmitEvent) {
+		e.preventDefault()
+		if ($appState.selectedInvoiceId && $appState.selectedLogId) {
+			const entity = invoiceItemLogSchema.parse(formData)
+			processingEdit = true
+			const result = await editLog($appState.selectedInvoiceId, entity).finally(
+				() => (processingEdit = false)
+			)
+			if (!result.success) {
+				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			}
 		}
 		$editItemModalOpen = false
 		$appState.drawerVisible = false
@@ -86,6 +95,7 @@
 			type="number"
 			name="cost"
 			min="0"
+			step="0.01"
 			placeholder="Type here"
 			required
 			bind:value={formData.cost}
@@ -94,10 +104,9 @@
 			<button type="button" class="btn btn-ghost" on:click={() => ($editItemModalOpen = false)}
 				>Cancel</button
 			>
-			<button class="btn btn-success flex gap-1 items-center">
-				<span class="i-mdi-floppy text-lg" />
+			<Button class="btn-primary" icon="i-mdi-floppy" processing={processingEdit}>
 				<span>Save</span>
-			</button>
+			</Button>
 		</div>
 	</form>
 </Modal>

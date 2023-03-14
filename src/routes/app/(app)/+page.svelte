@@ -2,21 +2,21 @@
 	import Invoice from '$/components/Invoice.svelte'
 	import { createNewInvoiceModalOpen } from '$/modals/auto-import/CreateNewInvoiceModal.svelte'
 	import { prompt } from '$/modals/auto-import/PromptModal.svelte'
-	import { actionSchema, appState, userState } from '$/stores'
-	import type { TInvoice } from '$/types'
+	import { actionSchema, appState, loadingMessage, userState } from '$/stores'
+	import type { Writable } from 'svelte/store'
 
-	let invoices: TInvoice[]
-
-	$: {
-		;({ invoices } = $userState)
-	}
+	const loading = getContext<Writable<boolean>>('loading')
 
 	onMount(() => {
 		$appState.actions = z.array(actionSchema).parse([
 			{
 				icon: 'i-mdi-import',
 				label: 'Import Invoice(s)',
-				action: importInvoices
+				action: () => {
+					$loadingMessage = 'Importing'
+					$loading = true
+					importInvoices().finally(() => ($loading = false))
+				}
 			},
 			{
 				icon: 'i-mdi-export',
@@ -47,10 +47,10 @@
 	})
 </script>
 
-<div class="p-5 min-h-full">
-	{#if invoices.length > 0}
-		<div class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-			{#each invoices as invoice (invoice.id)}
+<div class="p-5 min-h-full grid">
+	{#if $userState.invoices.length > 0}
+		<div class="grid content-start gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+			{#each $userState.invoices as invoice (invoice.id)}
 				<div
 					animate:flip={{ duration: 300 }}
 					in:fade={{ duration: 150 }}
@@ -73,7 +73,14 @@
 				<span>Create Invoice</span>
 			</button>
 			<h2 class="text-xl uppercase font-bold">Or</h2>
-			<button class="flex items-center gap-1 btn btn-success" on:click={importInvoices}>
+			<button
+				class="flex items-center gap-1 btn btn-success"
+				on:click={() => {
+					$loadingMessage = 'Importing'
+					$loading = true
+					importInvoices().finally(() => ($loading = false))
+				}}
+			>
 				<span class="i-mdi-import text-lg" />
 				<span>Import Invoices</span>
 			</button>

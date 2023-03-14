@@ -4,6 +4,10 @@
 	"trailingComma": "none",
 	"printWidth": 100,
 	"semi": false,
-	"plugins": ["prettier-plugin-tailwindcss", "prettier-plugin-organize-imports"],
+	"plugins": [
+		"prettier-plugin-tailwindcss",
+		"prettier-plugin-organize-imports",
+		"prettier-plugin-prisma"
+	],
 	"organizeImportsSkipDestructiveCodeActions": true
 }

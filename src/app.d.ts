@@ -5,7 +5,19 @@
 // for information about these interfaces
 // and what to do when importing types
 declare namespace App {
-	// interface Locals {}
+	interface Locals {
+		user: bigint | null
+		offlineMode: boolean
+		expired: boolean
+	}
+	interface PageData extends TResult<{ invoices: TInvoice[]; addressbook: TEntity[] }> {
+		user: bigint | null
+		expired: boolean
+	}
+	interface Error {
+		code: string
+		message: string
+	}
 	// interface Platform {}
 	// interface Session {}
 	// interface Stuff {}

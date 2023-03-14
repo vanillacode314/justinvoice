@@ -9,6 +9,9 @@ const config = {
 	define: {
 		__version__: JSON.stringify(pkgJson.version)
 	},
+	/* build: { */
+	/* 	sourcemap: true */
+	/* }, */
 	plugins: [
 		AutoImport({
 			imports: [
@@ -24,7 +27,7 @@ const config = {
 					clsx: ['clsx']
 				}
 			],
-			dirs: ['./src/utils/'],
+			dirs: ['./src/lib/', './src/utils/'],
 			dts: 'src/auto-imports.d.ts'
 		}),
 		Unocss({

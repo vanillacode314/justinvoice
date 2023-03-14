@@ -1,43 +1,211 @@
 import { entitySchema, invoiceSchema } from '$/types'
+import { browser } from '$app/environment'
+import { goto, invalidate } from '$app/navigation'
+import * as devalue from 'devalue'
+import type { Readable } from 'svelte/store'
 import { z } from 'zod'
 
-export const actionSchema = z.object({
-	icon: z.string(),
-	color: z.string().default(''),
-	label: z.string(),
-	action: z.function(),
-	noClose: z.boolean().default(false),
-	noFab: z.boolean().default(false)
-})
-
+const modes = ['default', 'selection'] as const
+export const actionSchema = z
+	.object({
+		id: z.string().optional(),
+		icon: z.string(),
+		color: z
+			.string()
+			.default('')
+			.transform((value) => () => value)
+			.or(z.function().returns(z.string())),
+		label: z
+			.string()
+			.transform((value) => () => value)
+			.or(z.function().returns(z.string())),
+		mode: z.enum(modes).default('default'),
+		action: z.function(),
+		noClose: z.boolean().default(false),
+		noFab: z.boolean().default(false)
+	})
+	.transform((action) => ({
+		...action,
+		id:
+			action.id ||
+			action
+				.label()
+				.toLowerCase()
+				.replace(/\s+/g, '-')
+				.replace(/[^a-z0-9-]/g, '')
+	}))
 export type TAction = z.infer<typeof actionSchema>
 
-export const appStateSchema = z.object({
-	selectedInvoiceId: z.string().optional(),
-	selectedItemId: z.string().optional(),
-	selectedAddressId: z.string().optional(),
+const internalAppStateSchema = z.object({
+	selectedInvoiceId: z.bigint().default(-1n),
+	selectedLogId: z.bigint().default(-1n),
+	selectedAddressId: z.bigint().default(-1n),
 	drawerVisible: z.boolean().default(false),
-	selectionMode: z.boolean().default(false),
-	actions: z.array(actionSchema.or(z.literal('spacer'))).default(Array)
+	selectedItems: z.boolean().default(false).array().default(Array),
+	actions: actionSchema
+		.or(z.literal('spacer'))
+		.array()
+		.default(Array)
+		.transform((actions) =>
+			actions.filter(
+				(action1, index) =>
+					action1 === 'spacer' ||
+					actions.findIndex((action2) => action2 !== 'spacer' && action2.id === action1.id) ===
+						index
+			)
+		)
+})
+type TInternalAppState = z.infer<typeof internalAppStateSchema>
+export const appStateSchema = internalAppStateSchema.extend({
+	mode: z.enum(modes).default('default')
 })
 export type TAppState = z.infer<typeof appStateSchema>
-export const appState = writable<TAppState>(appStateSchema.parse({}))
+function appStateStore() {
+	const internalAppState = writable<TInternalAppState>(internalAppStateSchema.parse({}))
+	const { set, update } = internalAppState
+	const { subscribe } = derived<[typeof internalAppState], TAppState>(
+		[internalAppState],
+		([$internalAppState]) => {
+			const selectionMode = $internalAppState.selectedItems.some(Boolean)
+			const allSelected = $internalAppState.selectedItems.every(Boolean)
+			return appStateSchema.parse({
+				...$internalAppState,
+				mode: selectionMode ? 'selection' : 'default',
+				actions: [
+					...$internalAppState.actions,
+					{
+						id: 'select-all',
+						icon: 'i-mdi-select-all',
+						label: allSelected ? 'Deselect All' : 'Select All',
+						mode: 'selection',
+						action: () =>
+							internalAppState.update(($internalAppState) => {
+								$internalAppState.selectedItems = $internalAppState.selectedItems.fill(!allSelected)
+								return $internalAppState
+							})
+					},
+					{
+						icon: 'i-mdi-swap-horizontal',
+						label: 'Invert Selection',
+						mode: 'selection',
+						action: () =>
+							internalAppState.update(($internalAppState) => {
+								$internalAppState.selectedItems = $internalAppState.selectedItems.map((val) => !val)
+								return $internalAppState
+							})
+					}
+				]
+			})
+		}
+	)
+	return {
+		set,
+		update,
+		subscribe
+	}
+}
+export const appState = appStateStore()
 
-export const userStateSchema = z.object({
-	invoices: z.array(invoiceSchema).default(Array),
-	archivedInvoices: z.array(invoiceSchema).default(Array),
-	addressbook: z.array(entitySchema).default(Array),
-	defaultSender: z.string().optional(),
-	defaultCurrency: z.string().optional()
+export const settingsSchema = z.object({
+	defaultSender: z.bigint().nullable().default(null),
+	defaultCurrency: z.string().default('USD')
 })
-export type TUserState = z.infer<typeof userStateSchema>
-export const userState = persisted<TUserState>('user-state-v1', userStateSchema.parse({}), {
+export type TSettings = z.infer<typeof settingsSchema>
+export const settings = persisted<TSettings>('settings-v1', settingsSchema.parse({}), {
 	serializer: {
 		parse(value) {
-			return userStateSchema.parse(JSON.parse(value))
+			try {
+				return settingsSchema.parse(devalue.parse(value))
+			} catch {
+				return settingsSchema.parse({})
+			}
 		},
 		stringify(object) {
-			return JSON.stringify(userStateSchema.parse(object))
+			return devalue.stringify(settingsSchema.parse(object))
 		}
 	}
 })
+
+export const userStateSchema = z.object({
+	invoices: invoiceSchema
+		.array()
+		.default(Array)
+		.transform((val) => uniqByKey(val, 'id')),
+	addressbook: entitySchema
+		.array()
+		.default(Array)
+		.transform((val) => uniqByKey(val, 'id'))
+})
+export type TUserState = z.infer<typeof userStateSchema>
+export const offlineMode = persisted<boolean>('offline-mode', false)
+offlineMode.subscribe(async ($offlineMode) => {
+	if (!browser) return
+	const url = new URL(location.href)
+	const urlState = Boolean(url.searchParams.get('offlineMode'))
+	if (urlState === $offlineMode) return
+	const newUrl = new URL(window.location.origin + '/app')
+	if ($offlineMode) newUrl.searchParams.set('offlineMode', 'true')
+	await goto(newUrl)
+	await invalidate('offlineMode')
+})
+
+function userStateStore() {
+	const localUserState = persisted<TUserState>('user-state-v2', userStateSchema.parse({}), {
+		serializer: {
+			parse(value) {
+				try {
+					return userStateSchema.parse(devalue.parse(value))
+				} catch {
+					return userStateSchema.parse({})
+				}
+			},
+			stringify(object) {
+				return devalue.stringify(userStateSchema.parse(object))
+			}
+		}
+	})
+	const remoteUserState = writable<TUserState>(userStateSchema.parse({}))
+	const { subscribe } = derived<
+		[typeof offlineMode, typeof localUserState, typeof remoteUserState],
+		TUserState
+	>(
+		[offlineMode, localUserState, remoteUserState],
+		([$offlineMode, $localUserState, $remoteUserState]) => {
+			return $offlineMode ? $localUserState : $remoteUserState
+		}
+	)
+
+	return {
+		toggleOfflineMode: () => offlineMode.update((val) => !val),
+		set: (value: TUserState) => {
+			get(offlineMode)
+				? localUserState.set(userStateSchema.parse(value))
+				: remoteUserState.set(userStateSchema.parse(value))
+		},
+		update: (value: (prev: TUserState) => TUserState) => {
+			get(offlineMode)
+				? localUserState.update((prev) => userStateSchema.parse(value(prev)))
+				: remoteUserState.update((prev) => userStateSchema.parse(value(prev)))
+		},
+		subscribe
+	}
+}
+export const userState = userStateStore()
+
+export const loadingMessage = writable<string>('')
+export function loadingStore(navigating: Readable<any>) {
+	const store = writable<boolean>(false)
+
+	const { subscribe } = derived<[typeof navigating, typeof store], boolean>(
+		[navigating, store],
+		([$navigating, $store]) => $store || $navigating
+	)
+	return {
+		set: (value: boolean) => {
+			!value && loadingMessage.set('')
+			store.set(value)
+		},
+		update: (value: (prev: boolean) => boolean) => store.update(value),
+		subscribe
+	}
+}

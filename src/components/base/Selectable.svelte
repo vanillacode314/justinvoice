@@ -13,7 +13,8 @@
 <div
 	class="relative grid rounded-xl overflow-hidden"
 	use:longpress={{
-		duration: () => ($appState.selectionMode || selected ? 10 : 1000),
+		duration: () => ($appState.mode === 'selection' ? 10 : 1000),
+		vibrate: () => ($appState.mode === 'selection' ? false : true),
 		callback() {
 			selected = !selected
 		}

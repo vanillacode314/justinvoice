@@ -1,52 +1,32 @@
 <script lang="ts">
 	import Address from '$/components/Address.svelte'
+	import { toast } from '$/components/base/Toast.svelte'
 	import { addNewAddressModalOpen } from '$/modals/auto-import/AddNewAddressModal.svelte'
 	import ConfirmModal from '$/modals/ConfirmModal.svelte'
 	import { actionSchema, appState, userState } from '$/stores'
 
-	let selectedAddresses: boolean[] = []
 	let deleteModalOpen: boolean = false
 
-	$: $appState.selectionMode = selectedAddresses.some((val) => val === true)
-	$: selectedAddresses.length = $userState.addressbook.length
-
-	$: $appState.actions = z.array(actionSchema).parse(
-		$appState.selectionMode
-			? [
-					{
-						icon: 'i-mdi-trash',
-						label: 'Delete',
-						action: () => (deleteModalOpen = true)
-					}
-			  ]
-			: [
-					{
-						icon: 'i-mdi-add',
-						label: 'Add',
-						color: 'btn-primary',
-						action: () => ($addNewAddressModalOpen = true)
-					}
-			  ]
-	)
-
 	onMount(() => {
-		$appState.actions = z.array(actionSchema).parse([
+		$appState.actions = actionSchema.array().parse([
+			{
+				icon: 'i-mdi-trash',
+				label: 'Delete',
+				color: 'btn-error',
+				mode: 'selection',
+				action: () => (deleteModalOpen = true)
+			},
 			{
 				icon: 'i-mdi-add',
 				label: 'Add',
 				color: 'btn-primary',
 				action: () => ($addNewAddressModalOpen = true)
-			},
-			{
-				icon: 'i-mdi-trash',
-				label: 'Delete',
-				action: () => (deleteModalOpen = true)
 			}
 		])
 	})
 
 	onDestroy(() => {
-		selectedAddresses.fill(false)
+		$appState.selectedItems = $appState.selectedItems.fill(false)
 		$appState.actions = []
 	})
 </script>
@@ -72,7 +52,7 @@
 				out:scale|local
 				class="grid"
 			>
-				<Address {...address} bind:selected={selectedAddresses[index]} />
+				<Address {...address} bind:selected={$appState.selectedItems[index]} />
 			</div>
 		{/each}
 	</div>
@@ -82,11 +62,18 @@
 	icon="i-mdi-warning"
 	title="Delete Selected Addresses"
 	message="Are you sure, you would like to delete all selected addresses and the invoices which use them?"
-	on:confirm={() => {
-		const addresses = $userState.addressbook.filter(
-			(_address, index) => selectedAddresses[index] === true
-		)
-		removeAddresses(addresses.map(({ id }) => id))
-		selectedAddresses.fill(false)
+	on:confirm={async (e) => {
+		e.detail(async () => {
+			const result = await removeAddresses(
+				getSelectedFromArray($userState.addressbook, $appState.selectedItems).map(({ id }) => id)
+			)
+			if (!result.success) {
+				toast(result.error.code, result.error.message, { type: 'error', duration: 5000 })
+			}
+			$appState.selectedItems = $appState.selectedItems.fill(false)
+		})
+	}}
+	on:cancel={() => {
+		$appState.selectedItems = $appState.selectedItems.fill(false)
 	}}
 />

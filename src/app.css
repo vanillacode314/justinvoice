@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+	.preserve-3d {
+		transform-style: preserve-3d;
+	}
+}
+
 * {
 	max-height: 99999999px;
 }
