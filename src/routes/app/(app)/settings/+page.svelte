@@ -45,7 +45,7 @@
 	})
 </script>
 
-<div class="p-5 flex flex-col gap-5">
+<main class="p-5 flex flex-col gap-5 max-w-xl mx-auto">
 	<Input
 		label="Default Currency"
 		id="default-title"
@@ -83,4 +83,4 @@
 	>
 		<button class="btn btn-error">Clear Data</button>
 	</ConfirmModal>
-</div>
+</main>
