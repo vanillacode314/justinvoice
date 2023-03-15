@@ -23,7 +23,7 @@
 	const links: ILink[] = [
 		{
 			href: '/app',
-			title: 'Invoice',
+			title: 'Invoices',
 			icon: 'i-mdi-document',
 			actions: [
 				{
