@@ -25,6 +25,10 @@
 	$: stats =
 		invoice && sender && recipient
 			? [
+					{
+						label: 'Total Cost',
+						value: invoice.logs.reduce((sum, { cost }) => sum + cost, 0) + ' ' + invoice.currency
+					},
 					{ label: 'Date of Issue', value: formatDate(new Date(invoice.dateOfIssue)) },
 					{ label: 'Sender', value: `${sender.name}, ${sender.address}` },
 					{ label: 'Recipient', value: `${recipient.name}, ${recipient.address}` }
@@ -208,7 +212,7 @@
 						</label>
 					</div>
 				</h2>
-				<div class="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+				<div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
 					{#each stats as { label, value } (label)}
 						<article class="flex w-full flex-col gap-1 p-5 bg-black/10 rounded-xl">
 							<span class="font-medium uppercase tracking-wide text-xs">{label}</span>
