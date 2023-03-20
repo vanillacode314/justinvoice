@@ -62,7 +62,7 @@
 </script>
 
 <div class="p-5 min-h-full grid">
-	{#if !isEqual($appState.invoiceFilters, appStateSchema.shape.invoiceFilters.parse({}))}
+	{#if $userState.filteredInvoices.length === 0 && !isEqual($appState.invoiceFilters, appStateSchema.shape.invoiceFilters.parse({}))}
 		<div class="flex flex-col gap-5 items-center h-full justify-center">
 			<span class="i-mdi-file-document-multiple text-6xl" />
 			<h2 class="text-xl uppercase font-bold">No Invoices Found</h2>
