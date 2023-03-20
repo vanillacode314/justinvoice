@@ -36,7 +36,15 @@ export const actionSchema = z
 	}))
 export type TAction = z.infer<typeof actionSchema>
 
+const ternaryFilterSchema = z.boolean().nullable().default(null)
+const stringFilterSchema = z.string().nullable().default(null)
 const internalAppStateSchema = z.object({
+	invoiceFilters: z
+		.object({
+			paid: ternaryFilterSchema,
+			query: stringFilterSchema
+		})
+		.default({}),
 	selectedInvoiceId: z.bigint().default(-1n),
 	selectedLogId: z.bigint().default(-1n),
 	selectedAddressId: z.bigint().default(-1n),
@@ -126,7 +134,7 @@ export const settings = persisted<TSettings>('settings-v1', settingsSchema.parse
 	}
 })
 
-export const userStateSchema = z.object({
+export const internalUserStateSchema = z.object({
 	invoices: invoiceSchema
 		.array()
 		.default(Array)
@@ -136,7 +144,12 @@ export const userStateSchema = z.object({
 		.default(Array)
 		.transform((val) => uniqByKey(val, 'id'))
 })
+export type TInternalUserState = z.infer<typeof internalUserStateSchema>
+export const userStateSchema = internalUserStateSchema.extend({
+	filteredInvoices: invoiceSchema.array().default([])
+})
 export type TUserState = z.infer<typeof userStateSchema>
+
 export const offlineMode = persisted<boolean>('offline-mode', false)
 offlineMode.subscribe(async ($offlineMode) => {
 	if (!browser) return
@@ -150,39 +163,55 @@ offlineMode.subscribe(async ($offlineMode) => {
 })
 
 function userStateStore() {
-	const localUserState = persisted<TUserState>('user-state-v2', userStateSchema.parse({}), {
+	const localUserState = persisted<TInternalUserState>('user-state-v2', userStateSchema.parse({}), {
 		serializer: {
 			parse(value) {
 				try {
-					return userStateSchema.parse(devalue.parse(value))
+					return internalUserStateSchema.parse(devalue.parse(value))
 				} catch {
-					return userStateSchema.parse({})
+					return internalUserStateSchema.parse({})
 				}
 			},
 			stringify(object) {
-				return devalue.stringify(userStateSchema.parse(object))
+				return devalue.stringify(internalUserStateSchema.parse(object))
 			}
 		}
 	})
-	const remoteUserState = writable<TUserState>(userStateSchema.parse({}))
+	const remoteUserState = writable<TInternalUserState>(userStateSchema.parse({}))
 	const { subscribe } = derived<
-		[typeof offlineMode, typeof localUserState, typeof remoteUserState],
+		[typeof offlineMode, typeof localUserState, typeof remoteUserState, typeof appState],
 		TUserState
 	>(
-		[offlineMode, localUserState, remoteUserState],
-		([$offlineMode, $localUserState, $remoteUserState]) => {
-			return $offlineMode ? $localUserState : $remoteUserState
+		[offlineMode, localUserState, remoteUserState, appState],
+		([$offlineMode, $localUserState, $remoteUserState, $appState]) => {
+			if ($offlineMode) {
+				const filters = $appState.invoiceFilters
+				return Object.assign($localUserState, {
+					filteredInvoices: $localUserState.invoices.filter((invoice) => {
+						let condition: boolean = true
+						if (filters.query !== null) {
+							condition = invoice.title.toLowerCase().includes(filters.query.toLowerCase())
+						}
+						if (filters.paid !== null) {
+							condition = condition && invoice.paid === filters.paid
+						}
+						return condition
+					})
+				})
+			} else {
+				return Object.assign($remoteUserState, { filteredInvoices: $remoteUserState.invoices })
+			}
 		}
 	)
 
 	return {
 		toggleOfflineMode: () => offlineMode.update((val) => !val),
-		set: (value: TUserState) => {
+		set: (value: TInternalUserState) => {
 			get(offlineMode)
 				? localUserState.set(userStateSchema.parse(value))
 				: remoteUserState.set(userStateSchema.parse(value))
 		},
-		update: (value: (prev: TUserState) => TUserState) => {
+		update: (value: (prev: TInternalUserState) => TInternalUserState) => {
 			get(offlineMode)
 				? localUserState.update((prev) => userStateSchema.parse(value(prev)))
 				: remoteUserState.update((prev) => userStateSchema.parse(value(prev)))
@@ -193,12 +222,12 @@ function userStateStore() {
 export const userState = userStateStore()
 
 export const loadingMessage = writable<string>('')
-export function loadingStore(navigating: Readable<any>) {
+export function loadingStore(navigating: Readable<unknown>) {
 	const store = writable<boolean>(false)
 
 	const { subscribe } = derived<[typeof navigating, typeof store], boolean>(
 		[navigating, store],
-		([$navigating, $store]) => $store || $navigating
+		([$navigating, $store]) => $store || !!$navigating
 	)
 	return {
 		set: (value: boolean) => {

@@ -1,6 +1,6 @@
 {
 	"name": "justinvoice",
-	"version": "2.2.11",
+	"version": "2.3.0",
 	"scripts": {
 		"dev": "vite dev",
 		"prebuild": "prisma generate",

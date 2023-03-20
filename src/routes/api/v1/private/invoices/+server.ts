@@ -4,7 +4,9 @@ export const GET = makeResultHandler(
 	'GET',
 	z.object({
 		includeLogs: z.boolean().default(false),
-		archived: z.boolean().nullable().default(false)
+		archived: z.boolean().nullable().default(false),
+		paid: z.boolean().nullable().default(null),
+		query: z.string().nullable().default(null)
 	}),
 	z.object({
 		invoices: invoiceSchema
@@ -17,13 +19,20 @@ export const GET = makeResultHandler(
 		addressbook: entitySchema.array().transform((addressbook) => uniqByKey(addressbook, 'id'))
 	}),
 	async ({ locals, send, data }) => {
-		const { archived, includeLogs } = data
+		const { paid, archived, query, includeLogs } = data
 		const user = locals.user!
 		const result = await handleTransaction(async () => {
 			const invoices = await db.invoice.findMany({
 				where: {
 					userId: user,
-					archived: archived === null ? undefined : archived
+					archived: archived === null ? undefined : archived,
+					paid: paid === null ? undefined : paid,
+					title:
+						query === null
+							? undefined
+							: {
+									contains: query
+							  }
 				},
 				include: {
 					logs: includeLogs,
