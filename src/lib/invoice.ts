@@ -157,7 +157,7 @@ export async function exportAll(filename: string = 'justinvoices') {
 	)
 }
 
-export async function importInvoices() {
+export async function importInvoices(onGetFile?: () => void) {
 	const content = await getFile('application/json')
 	if (!content) {
 		alert({

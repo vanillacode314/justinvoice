@@ -27,9 +27,10 @@
 					icon: 'i-mdi-import',
 					label: 'Import Invoice(s)',
 					action: () => {
-						$loadingMessage = 'Importing'
-						$loading = true
-						importInvoices().finally(() => ($loading = false))
+						importInvoices(() => {
+							$loadingMessage = 'Importing'
+							$loading = true
+						}).finally(() => ($loading = false))
 					}
 				},
 				{
