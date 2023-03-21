@@ -78,13 +78,12 @@ model Session {
 }
 
 model User {
-  id                BigInt    @id @default(autoincrement())
-  email             String    @unique @db.VarChar(255)
-  password          String    @db.VarChar(255)
-  encryptedKey      String    @db.VarChar(255)
-  offlineModeActive Boolean   @default(false)
-  invoices          Invoice[]
-  profile           Profile?
-  session           Session[]
-  entity            Entity[]
+  id           BigInt    @id @default(autoincrement())
+  email        String    @unique @db.VarChar(255)
+  password     String    @db.VarChar(255)
+  encryptedKey String    @db.VarChar(255)
+  invoices     Invoice[]
+  profile      Profile?
+  session      Session[]
+  entity       Entity[]
 }
