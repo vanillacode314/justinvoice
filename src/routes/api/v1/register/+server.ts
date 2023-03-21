@@ -1,5 +1,4 @@
 import { db } from '$/lib/db'
-import { hashPassword } from '$/utils/server'
 import { Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 

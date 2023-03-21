@@ -1,5 +1,4 @@
 import { db } from '$/lib/db'
-import { hashPassword } from '$/utils/server'
 import type { RequestHandler } from '@sveltejs/kit'
 import bcrypt from 'bcryptjs'
 
