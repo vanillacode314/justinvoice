@@ -1,4 +1,5 @@
 import { db } from '$/lib/db'
+import { hashPassword } from '$/utils/server'
 import type { RequestHandler } from '@sveltejs/kit'
 import bcrypt from 'bcryptjs'
 
@@ -29,7 +30,7 @@ export const POST: RequestHandler = makeResultHandler(
 			)
 		}
 
-		if (!bcrypt.compareSync(password, user.password)) {
+		if (!(await bcrypt.compare(password, user.password))) {
 			return send(
 				{
 					success: false,
@@ -42,7 +43,7 @@ export const POST: RequestHandler = makeResultHandler(
 			)
 		}
 
-		const sessionId = bcrypt.hashSync(Math.random().toString())
+		const sessionId = await hashPassword(Math.random().toString())
 
 		await db.user.update({
 			where: {

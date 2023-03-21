@@ -1,5 +1,6 @@
 import { resultSchema } from '$/types'
 import type { RequestHandler } from '@sveltejs/kit'
+import bcrypt from 'bcryptjs'
 import * as devalue from 'devalue'
 import z from 'zod'
 
@@ -67,4 +68,11 @@ export function handleQueries<T extends z.ZodTypeAny>(
 	const value = query.get('value') as string
 	const result = dataSchema.safeParse(devalue.parse(value) || {})
 	return result.success ? result.data : null
+}
+
+export async function hashPassword(password: string) {
+	const saltRounds = 10
+	const salt = await bcrypt.genSalt(saltRounds)
+	const hashedPassword = await bcrypt.hash(password, salt)
+	return hashedPassword
 }

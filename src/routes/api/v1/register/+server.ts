@@ -1,4 +1,5 @@
 import { db } from '$/lib/db'
+import { hashPassword } from '$/utils/server'
 import { Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
@@ -11,9 +12,9 @@ export const POST = makeResultHandler(
 	z.object({ id: z.bigint() }),
 	async ({ send, data, cookies }) => {
 		const { email, password } = data
-		const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10))
-		const encryptedKey = bcrypt.hashSync(Math.random().toString())
-		const sessionId = bcrypt.hashSync(Math.random().toString())
+		const hashedPassword = await hashPassword(password)
+		const encryptedKey = await hashPassword(Math.random().toString())
+		const sessionId = await hashPassword(Math.random().toString())
 
 		try {
 			const user = await db.user.create({
