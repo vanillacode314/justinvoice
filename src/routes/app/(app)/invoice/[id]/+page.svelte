@@ -212,7 +212,7 @@
 						</label>
 					</div>
 				</h2>
-				<div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+				<div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
 					{#each stats as { label, value } (label)}
 						<article class="flex w-full flex-col gap-1 p-5 bg-black/10 rounded-xl">
 							<span class="font-medium uppercase tracking-wide text-xs">{label}</span>
