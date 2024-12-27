@@ -43,24 +43,24 @@
 		</p>
 		<div class="grid">
 			<div class="senders-info">
-				<span class="label">Sender's Info</span>
+				<span class="label">Business Info</span>
 				<p>
-					<strong>Sender's Name:</strong>
+					<strong>Name:</strong>
 					{sender.name}
 				</p>
 				<p>
-					<strong>Sender's Address:</strong>
+					<strong>Address:</strong>
 					{sender.address}
 				</p>
 			</div>
 			<div class="recipients-info">
-				<span class="label">Recipient's Info</span>
+				<span class="label">Client/Payee Info</span>
 				<p>
-					<strong>Recipient's Name:</strong>
+					<strong>Name:</strong>
 					{recipient.name}
 				</p>
 				<p>
-					<strong>Recipient's Address:</strong>
+					<strong>Address:</strong>
 					{recipient.address}
 				</p>
 			</div>
