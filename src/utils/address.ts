@@ -1,12 +1,9 @@
 import { userState } from '$/stores'
 import type { TEntity } from '$/types'
+import { nanoid } from 'nanoid'
 
 export function addAddress(name: TEntity['name'], address: TEntity['address']): TEntity {
-	let id: TEntity['id'] = crypto.randomUUID()
-	const ids = get(userState).addressbook.map(({ id }) => id)
-	while (ids.includes(id)) {
-		id = crypto.randomUUID()
-	}
+	const id: TEntity['id'] = nanoid()
 	const entity = {
 		id,
 		name,

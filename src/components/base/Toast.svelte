@@ -1,4 +1,6 @@
 <script context="module" lang="ts">
+	import { nanoid } from "nanoid"
+
 	type MessageType = 'info' | 'warning' | 'error' | 'success'
 	interface Message {
 		id: string
@@ -19,7 +21,7 @@
 		{ type = 'info', duration = 3000 }: Partial<Opts> = {}
 	): Message {
 		const message = {
-			id: crypto.randomUUID(),
+			id: nanoid(),
 			title,
 			content,
 			type

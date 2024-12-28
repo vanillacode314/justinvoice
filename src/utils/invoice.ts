@@ -7,6 +7,7 @@ import {
 	type TInvoice,
 	type TInvoiceItemLog
 } from '$/types'
+import { nanoid } from 'nanoid'
 import type { z } from 'zod'
 import { diffByKey } from '.'
 
@@ -16,11 +17,7 @@ export function createInvoice(
 	recipientId: TEntity['id'],
 	currency: TInvoice['currency']
 ): TInvoice {
-	let id: TInvoice['id'] = crypto.randomUUID()
-	const ids = get(userState).invoices.map(({ id }) => id)
-	while (ids.includes(id)) {
-		id = crypto.randomUUID()
-	}
+	let id: TInvoice['id'] = nanoid()
 	const invoice: TInvoice = invoiceSchema.parse({
 		id,
 		title,
@@ -68,7 +65,7 @@ export function addItem(
 	qty: TInvoiceItemLog['qty'],
 	description: TInvoiceItemLog['description'] = ''
 ) {
-	const id = crypto.randomUUID()
+	const id = nanoid(4)
 	const log: TInvoiceItemLog = invoiceItemLogSchema.parse({
 		id,
 		title,

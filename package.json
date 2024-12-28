@@ -48,6 +48,7 @@
 		"@unocss/reset": "^0.49.1",
 		"clsx": "^1.2.1",
 		"lodash-es": "^4.17.21",
+		"nanoid": "^5.0.9",
 		"number-to-words": "^1.2.4",
 		"svelte-local-storage-store": "^0.4.0",
 		"unocss": "^0.49.1",
