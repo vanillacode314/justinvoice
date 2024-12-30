@@ -43,7 +43,7 @@
 		</p>
 		<div class="grid">
 			<div class="senders-info">
-				<span class="label">Business Info</span>
+				<span class="label">Pay To</span>
 				<p>
 					<strong>Name:</strong>
 					{sender.name}
@@ -54,7 +54,7 @@
 				</p>
 			</div>
 			<div class="recipients-info">
-				<span class="label">Client/Payee Info</span>
+				<span class="label">Billed To</span>
 				<p>
 					<strong>Name:</strong>
 					{recipient.name}
